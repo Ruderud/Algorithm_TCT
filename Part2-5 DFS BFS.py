@@ -99,6 +99,7 @@ BFS : Breadth First Search 너비 우선탐색 -> 가까운노드부터 탐색�
 
 #DFS 예제
 
+'''
 def dfs(graph,v,visited):
     visited[v] = True
     print(v,end=' ')
@@ -118,14 +119,16 @@ graph=[
     [1,7]
 ]
 
-visited = [False] * 9
+visited = [False] * 9 #첫 공백과 8개의 노드를 리스트 자료형으로 만들었다.
 
 dfs(graph, 1 ,visited)
 
-
+print()
+'''
 
 #BFS
 
+'''
 from collections import deque
 
 def bfs(graph,start,visited):
@@ -134,10 +137,247 @@ def bfs(graph,start,visited):
     visited[start]=True #현재노드 방문처리
 
     while queue:
-        v= queue.popleft() #큐에서 하나의 원소를 뽑아서 출력한다.
+        v= queue.popleft() #큐에서 '앞에서부터' 하나의 원소를 뽑아서 출력한다. -> 선입선출!
         print(v,end=' ')
+
+        for i in graph[v]:      #각 노드에 연결된 첫번째 항목부터(낮은수부터) 검사를 시작한다
+            if not visited[i]:
+                queue.append(i)     #방문하지 않은 노드일경우 큐의 '맨뒤'에 추가하고 해당 노드를 방문처리한다.
+                visited[i]=True
+
+graph=[
+    [],
+    [2,3,8],
+    [1,7],
+    [1,4,5],
+    [3,5],
+    [3,4],
+    [7],
+    [2,6,8],
+    [1,7]
+]
+
+visited = [False] * 9
+
+dfs(graph,1,visited)
+'''
+
+
+#실전문제3 음료수 얼려 먹기
+'''
+메모
+1,1, 1,2...등으로 검색할 좌표를 지정하자.
+
+해당노드를 bfs를 이용하여 방문순서를 만들고, 만들어진 방문순서 리스트 한덩어리 = 아이스크림 1개이다.
+
+총 방문순서 리스트 갯수를 count해서 출력한다.
+
+'''
+
+'''입력 구현끝
+n,m = map(int,input().split())
+
+d = [[0] * m for _ in range(n)]
+
+tray = []
+for _ in range(n):
+    tray.append(list(map(str,input())))
+    if n == len(tray):
+        break
+
+print(n,m)
+print(d)
+print(tray)
+
+n,m = 4,5
+d=[[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+tray = [['0', '0', '1', '1', '0'], ['0', '0', '0', '1', '1'], ['1', '1', '1', '1', '1'], ['0', '0', '0', '0', '0']]
+
+graph = []
+
+
+for x in range(m):
+    for y in range(n):
+        if x+1>m or x-1<0 or y+1>n or y-1<n:
+            continue
+        if tray[y][x+1] == '0':
+            graph.append(tray[y][x+1])
+        if tray[y][x-1] == '0':
+            graph.append(tray[y][x-1])
+        if tray[y+1][x] == '0':
+            graph.append(tray[y+1][x])
+        if tray[y-1][x] == '0':
+            graph.append(tray[y-1][x])
+
+print(graph)
+'''
+
+#해설
+'''
+n,m = map(int,input().split())
+
+graph = []
+for i in range(n):
+    graph.append(list(map(int,input())))
+
+print(graph)
+
+def dfs(x,y):
+    if x<=-1 or x>=n or y<=-1 or y>=m:      #범위벗어나면 false출력
+        return False
+    if graph[x][y] == 0:
+        graph[x][y] = 1                     #방문안했으면 1로 바꿈(i,j를 통해서 dfs검사시 이중으로 0인 덩어리를 세는것을 막기위함)
+        dfs(x-1,y)                          #사방의 반칸들에 대한 처리는 재귀화로 처리함. 
+        dfs(x+1,y)
+        dfs(x,y-1)
+        dfs(x,y+1)
+        return True
+    return False                            #이외의 표내의 1들은 false값 반환
+
+result = 0
+for i in range(n):
+    for j in range(m):
+        if dfs(i,j) == True:                #사방에 이어진 0덩어리를 다세면 +1을 한다.
+            result += 1
+
+print(result)
+'''
+
+
+#실전문제4 미로 탈출
+'''
+맵에서 첫시작에서 인접한 1을 가져오고 거기로이동.
+
+1,1에서 2,1을 가져오고, 1,1에서 갈곳이 없으면 빠져나감.
+
+다음으로 2,1을 가져오고 갈곳이 2,2가 있으므로 가져옴
+(반복)
+2,2에서 2,3을 가져옴
+
+2,3에서 갈수잇는 1,3과 2,4를 가져옴 
+
+1,3을 먼저 수색->갈수있는곳이 없음 ->false
+
+2.4를 수색-> 갈곳이있음->2,5->2,6 ->3,6->4,6
+
+4,6에서 문제임. 갈수있는 곳이 많은데 최단경로가 5,6을 거쳐서 6,6을 가면된다는것을 어떻게 정의?
+
+
+
+
+'''
+
+'''입력구현끝
+n,m = map(int,input().split())
+
+graph = []
+for i in range(n):
+    graph.append(list(map(int,input())))
+
+print(n,m)
+print(graph)
+'''
+print('-'*50)
+
+
+'''
+n,m=5,6
+graph = [
+    [1, 0, 1, 0, 1, 0], 
+    [1, 1, 1, 1, 1, 1], 
+    [0, 0, 0, 0, 0, 1], 
+    [1, 1, 1, 1, 1, 1], 
+    [1, 1, 1, 1, 1, 1]
+    ]
+
+from collections import deque
+
+def bfs(graph,start,visited):
+    queue = deque([start])
+    print(queue)
+    visited[start] = True
+
+    while queue:
+        for x in range(n):
+            for y in range(m):
+                
+for x in range(m):
+    for y in range(n):
+        if x+1>m or x-1<0 or y+1>n or y-1<n:
+            continue
+        if tray[y][x+1] == '0':
+            graph.append(tray[y][x+1])
+        if tray[y][x-1] == '0':
+            graph.append(tray[y][x-1])
+        if tray[y+1][x] == '0':
+            graph.append(tray[y+1][x])
+        if tray[y-1][x] == '0':
+            graph.append(tray[y-1][x])
+
+
+
+        v = queue.popleft()
+        print(v,end=' ')
+
+
+
 
         for i in graph[v]:
             if not visited[i]:
                 queue.append(i)
                 visited[i]=True
+
+visited= [False] * (n*m)  #나중에 true수 = 이동한 횟수
+
+bfs(graph,graph[0][0],visited)
+
+print(visited)
+
+'''
+
+
+#해설
+
+from collections import deque
+
+n,m = map(int,input().split())
+
+graph = []
+for i in range(n):
+    graph.append(list(map(int,input())))
+
+#상하좌우
+dx=[-1,1,0,0]
+dy=[0,0,-1,1]
+
+def bfs(x,y):
+    queue = deque()
+    queue.append((x,y))
+
+    while queue:  #queue가 빌때까지 반복함.
+        x,y = queue.popleft()   #선입선출
+        for i in range(4):      #선출된 좌표의 4방향검색
+            nx = x + dx[i]
+            ny = y + dy[i]
+
+            if nx<0 or ny<0 or nx>=n or ny>=n:      #선출좌표의 4방향이 그레프의 바깥부분일때 예외처리
+                continue
+
+            if graph[nx][ny] == 0:                  #선출좌표의 4방향이 0일때 = 벽일때 예외처리
+                continue
+
+            if graph[nx][ny] == 1:                  #선출좌표 4방향중 갈수있는 길(1)이 있을때
+                graph[nx][ny] = graph[x][y] + 1     #해당 갈수있는 길의 숫자에 +1을 한다.( 1->2->3...꼴)
+                queue.append((nx,ny))
+    return graph[n-1][m-1]                  #목적지에 도착했을때의 좌표위치값(=이동하는데 걸린횟수)을 출력한다
+
+print(bfs(0,0))
+
+
+
+
+
+
+
+
+print('-'*50)
