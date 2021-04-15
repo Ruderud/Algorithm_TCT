@@ -208,12 +208,11 @@ for i in range(k):
         a[aa],b[bb] = b[bb],a[aa]
     else: break
 
+result=0
+for num in a:
+    result+=num
 
-#result=0
-#for num in a:
-#    result+=num
-
-print(sum(a))
+print(result)
 
 '''해설
 여기서는 a는 오름차순, b는 내림차순으로 정렬해서 a[0] <-> b[0] 교체수행을 k번시킨다. (단 여기서도 a쪽이 b쪽보다 작을때 교체한다는 조건필수)
@@ -230,6 +229,7 @@ for i range(k):
         a[i],b[i] = b[i],a[i]
     else:
         Break
-print(sum(a))
+
+print(sum(a)) -> 마지막 for문을 이용한 덧셈은 sum(a) 한줄로 끝낼수있다.
 '''
 
