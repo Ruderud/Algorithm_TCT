@@ -92,7 +92,7 @@ for i in range(1,n+1):
 #이를 이용했을때의 장점은 위처럼 get_smallest_node함수를 정의해서 쓸필요가 없다는 점이다. 자동으로 우선순위큐에서 가져올순서를 정해놨기 때문이다.
 
 #개선 다익스트라
-
+'''
 import heapq                        #힙큐를 불러온다.
 import sys
 
@@ -132,3 +132,253 @@ for i in range(1,n+1):
         print("INFINITY")
     else:
         print(distance[i])
+'''
+
+'''
+기존 다익스트라 계산과 개선 다익스트라 계산의 직관적인차이.
+개선 다익스트라계산의 힙큐에 짧은것 순서로 가져오는것이 아닌, 모든 노드를 가져와서 패스하지않고 다 검사한다면 그것이 바로 기존 다익스트라 계산(전수검사)법이다.
+이때문에 개선방법의 처리횟수의 최대는 O(ElogE) (E;간선갯수) 가 되는데, E는 항상 V^2 이하이기때문에(모든노드를 서로 연결시의 최대값) 그렇다.
+
+'''
+
+
+
+
+#폴로이드 워셜 알고리즘
+#다익스트라는 "한지점"에서 다른노드들까지의 최소거리를 계산했다면, 폴로이드는 모든노드에서 다른 모든노드까지의 최소거리를 계산한다. 
+#N개의 노드에 대해 각각O(N^2)의 연산(2차원리스트사용)을 하므로, 총 시간복잡도는 O(N^3)
+#다이나믹 프로그래밍을 이용함. -> 점화식에 맞게 2차원 리스트를 갱신한다.
+
+'''
+k를 현재 탐색대상인 노드라고하고 A,B는 k를 제외한 나머지 N-1개중 2개를 순서를 고려한방법으로 고른 조합이다.(n-1P2)
+min(A->B, A->k->B)을 판단해서 갱신해 나가는것이 기본적인 방법이다. 
+
+K 1 2 3 4
+1 x x x x
+2 x x o o 
+3 x o x o
+4 x o o x -> k가 1일때 이런느낌으로 (k,k)의 종/횡/대각선을 제외한 부분(O)을 위의 min점화식을 이용, k를 전 노드에 대해서 점화식적 검사를 수행.
+(O구간의 갯수는 n-1P2 = 3P2 = 6임을 알수있다.)
+'''
+
+
+#폴로이드 워셜 알고리즘
+'''
+INF = int(1e9)
+n = int(input())        #노드갯수
+m = int(input())        #간선갯수
+graph = [[INF] * (n+1) for _ in range(n+1)]
+
+for a in range(1,n+1):
+    for b in range(1,n+1):
+        if a==b:                #자기자신으로 가는 노드(k->k)는 0의값으로 배정.
+            graph[a][b] = 0
+
+for _ in range(m):
+    a,b,c = map(int,input().split())
+    graph[a][b] = c             #a->b의 거리비용은 c
+
+for k in range(1,n+1):
+    for a in range(1,n+1):
+        for b in range(1,n+1):
+            graph[a][b] = min(graph[a][b],graph[a][k]+graph[k][b])      #a->b vs a->k->b
+
+for a in range(1,n+1):
+    for b in range(1,n+1):
+        if graph[a][b] == INF:          #도달불가는 무한으로 출력
+            print('INFINITY',end=" ")
+        else:
+            print(graph[a][b],end=' ')
+    print()     #1 -> 1,2,3,4 // 2->1,2,3,4 ... 꼴로 보기좋게 출력하기위함
+'''
+
+'''결과값
+0 4 8 6 
+3 0 7 9 
+5 9 0 4 
+7 11 2 0 
+(a,b)에 해당하는값이 a에서 b까지 가는데 걸리는 최단거리값.
+'''
+
+
+#------------------------------
+
+#실전문제2 미래 도시
+'''
+start지정 -> 다익스트라방법 (x)
+
+특징은 쌍방향이동이 가능하며, 무조건 k를 먼저 가야지, x를 들렀다가 k를 갔다가 다시 x를 가는것은 -1을 반환하게끔함.
+
+'''
+
+"""#해설 -> 이런유형은 플로이드 워셜을 사용함.
+
+INF = int(1e9)
+
+n,m = map(int,input().split())
+graph = [[INF] * (n+1) for _ in range(n+1)]
+'''
+[
+    [INF INF INF INF INF INF]
+    [INF INF INF INF INF INF]
+    [INF INF INF INF INF INF]
+    [INF INF INF INF INF INF]
+    [INF INF INF INF INF INF]
+    [INF INF INF INF INF INF]
+]
+꼴
+'''
+
+for a in range(1,n+1):
+    for b in range(1,n+1):
+        if a == b:
+            graph[a][b] = 0  #위 그래프에서 좌상->우하에 해당하는 대각선을 0으로 만든다 = 자기자신으로 가는 경로길이는 0으로 할당
+
+print(graph)
+
+for _ in range(m):
+    a,b = map(int,input().split())
+    graph[a][b] = 1
+    graph[b][a] = 1                 #a<->b간 경로길이는 1로 만든다.
+
+print(graph)
+'''
+[
+    [INF, INF, INF, INF, INF, INF],
+    [INF, 0,   1,   1,   1,   INF],
+    [INF, 1,   0,   INF, 1,   INF],
+    [INF, 1,   INF, 0,   1,   1  ],
+    [INF, 1,   1,   1,   0,   1  ],
+    [INF, INF, INF, 1,   1,   0  ]
+]
+'''
+
+x,k = map(int,input().split())
+
+for k in range(1,n+1):
+    for a in range(1,n+1):
+        for b in range(1,n+1):
+            graph[a][b] = min(graph[a][b], graph[a][k]+graph[k][b])  #플로이드 워셜 알고리즘 수행. a->b까지의 최단경로 vs a->k->b
+
+print(graph)
+'''
+[
+    [INF, INF, INF, INF, INF, INF], 
+    [INF, 0, 1, 1, 1, 2],
+    [INF, 1, 0, 2, 1, 2],
+    [INF, 1, 2, 0, 1, 1],
+    [INF, 1, 1, 1, 0, 1],
+    [INF, 2, 2, 1, 1, 0]
+]
+'''
+distance = graph[1][k] + graph[k][x]   #1->k까지의 최단경로 + k->x까지의 최단경로 = 1이 k를 들렀다가 x로 가는 경로의 최소값.
+
+if distance >= INF:
+    print("-1")
+else : 
+    print(distance)
+"""
+
+
+#실전문제3 전보 (64:06)
+'''
+다익스트라 -개선써야할듯. 도시갯수3만, 통로갯수 20만이라 많음.
+
+start도시에서 각도시에 도착하는데 걸리는 최단경로 리스트를 구하고, 그중 INF값이 아닌값 갯수 -1(자신은 제외해야하므로) = 수신하는도시
+도달하는데 걸리는 시간중 최대값 = 총걸리는시간
+
+이때 중요한거는 start에서 직접연결이 아니라, 다른 도시를 거쳐서 갈경우에는 서로 왕복통로가 존재해야하며 이걸 검사하는게 필요함 (핵심)
+
+'''
+
+'''
+import heapq
+import sys
+
+input = sys.stdin.readline
+INF = int(1e9)
+
+n,m,c = map(int,input().split())        #c=start
+graph = [ [] for _ in range(n+1)]
+distance = [INF] * (n+1)
+for _ in range(m):
+    x,y,z = map(int,input().split())
+    graph[x].append((y,z))
+
+def dijkstra_sol(start):
+    q=[]
+    heapq.heappush(q,(0,start))
+    distance[start] = 0
+    while q:
+        dist, now = heapq.heappop(q)
+        if distance[now] < dist:        #현재검색중인게 비효율적이면 검색안한다. +여기다가 graph에서 서로 path가 이어져있는지 걸러내는거 필요
+            continue
+
+        for i in graph[now]:
+            cost = dist + i[1]
+            if now != start :
+                                    #i[0] 검사대상경로가 향하는 목적지 노드값
+                path_check=[]
+                for p in range(len(graph[i[0]])):
+                    path_check.append(graph[i[0]][p][0])
+                if now not in path_check:
+                    continue
+
+            if cost < distance[i[0]]:
+                distance[i[0]] = cost
+                heapq.heappush(q,(cost,i[0]))
+
+dijkstra_sol(c)
+
+unable = distance.count(INF)
+
+print(len(distance)-unable-1,end=' ')
+
+result = []
+for i in range(1,n+1):
+    if distance[i] == INF:      
+        continue
+    else:
+        result.append(distance[i])
+print(max(result))
+'''
+
+'''#해설->이거 뭔가좀 이상함. 양방향 path가 존재해야 전달이 가능하다는 조건이있었는데 이걸 고려하지않았음.
+import heapq
+import sys
+
+input = sys.stdin.readline
+INF = int(1e9)
+
+n,m,start = map(int,input().split())        #c=start
+graph = [ [] for _ in range(n+1)]
+distance = [INF] * (n+1)
+for _ in range(m):
+    x,y,z = map(int,input().split())
+    graph[x].append((y,z))
+
+def dijkstra_solution(start):
+    q=[]
+    heapq.heappush(q,(0,start))
+    distance[start] = 0
+    while q:
+        dist, now = heapq.heappop(q)
+        if distance[now] < dist:
+            continue
+        for i in graph[now]:
+            cost = dist + i[1]
+        if cost < distance[i[0]]:
+            distance[i[0]] = cost
+            heapq.heappush(q,(cost,i[0]))   #여기까지 기존 개선 다익스트라와 동일
+
+dijkstra_solution(start)
+
+count = 0
+max_distance = 0
+for d in distance:
+    if d != INF :       #INF값을 걸러낸다
+        count += 1      #도달가능한 노드의 갯수 (시작노드가 포함되어있다는것을 인지!)...A
+        max_distance = max(max_distance,d)  #도달경로거리가 가장긴것을 구한다.
+    
+print(count-1,max_distance)         #여기서 시작노드가 포함되어있는 count에서 1을 빼주어서 보정함.
+'''
