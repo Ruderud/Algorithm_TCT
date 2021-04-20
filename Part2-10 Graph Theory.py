@@ -224,3 +224,184 @@ def topology_sort():
         print(i,end=' ')
 topology_sort()
 '''
+
+#살전문제2 팀 결성 (16:47)
+'''
+n,m = map(int,input().split())
+
+parent = [0] * (n+1)
+
+def find_parent_q2(parent,x):
+    if parent[x] != x:
+        parent[x] = find_parent_q2(parent,parent[x])
+    return parent[x]
+
+def union_parent_q2(parent,a,b):
+    a = find_parent_q2(parent,a)
+    b = find_parent_q2(parent,b)
+    if a<b:
+        parent[b] = a
+    else:
+        parent[a] = b
+
+for i in range(n+1):
+    parent[i] = i
+
+for _ in range(m):
+    act,a,b = map(int,input().split())
+    if act == 0:
+        union_parent_q2(parent,a,b)
+    if act == 1:
+        aa=find_parent_q2(parent,a)
+        bb=find_parent_q2(parent,b)
+        if aa == bb:
+            print('YES')
+        else :
+            print('NO')
+'''
+
+#실전문제3 도시 분할 계획
+'''
+아 최소비용으로 신장트리를 만들고, 가장 비싼도로 하나를 끊어버리면 된다.
+->아이디어는 정확
+'''
+
+'''
+def find_parent_q3(parent,x):
+    if parent[x] != x:
+        parent[x] = find_parent_q3(parent,parent[x])
+    return parent[x]
+
+def union_parent_q3(parent,a,b):
+    a = find_parent_q3(parent,a)
+    b = find_parent_q3(parent,b)
+    if a<b:
+        parent[b] = a
+    else:
+        parent[a] = b
+
+
+n,m = map(int,input().split())
+parent = [0] * (n+1)                #부모노드
+path = []
+cost=0
+
+for i in range(1,n+1):
+    parent[i] = i                   #부모노드 자기자신으로 초기화
+
+for _ in range(m):
+    a,b,c = map(int,input().split())
+    path.append((c,a,b))            #path입력
+
+path.sort()                         #path 값 기준 정렬
+highest = 0
+
+for c,a,b in path:
+    if find_parent_q3(parent,a) != find_parent_q3(parent,b):
+        union_parent_q3(parent,a,b)
+        cost+=c
+        highest = c
+
+print(cost-highest)
+'''
+
+#실전문제4 커리큘럼 (time over)
+'''
+유입차수+부모노드/자식노드이론을 이용해야한다. 
+해당 노드의 유입차수가 0이면 이수에 걸리는 시간 = 수업시간
+해당노드 유입차수가 0이상이면 이수에 걸리는 시간 = 해당 노드까지 걸리는 경로의 시간 + 해당 수업의 수업시간
+------
+풀이개념은 위상정렬 알고리즘을 사용함.
+각 노드에 대하여 인접한 노드를 확인할때, 인접한 노드에 대해 현재보다 강의시간이 더 긴경우를 찾고, 이를 결과값에 저장하는식으로 계산해서 출력함.
+    ex1) 1노드에 대해서는 이전에 연결된게 없기때문에 해당 노드의 현재 강의시간을 반환
+    ex2) 4노드에 대해서는 이전에 연결된게 1->3->4 순서로 이어져있기때문에, 3까지의 수업시간(10+4)에 4의 수업시간(4)을 더해서 18의 값이 나옴
+
+또한 주어진 time 테이블리스트값에 직접 수정하면서 결과값을 계산하면, 값변경시 문제가 되므로 deepcopy()함수를 이용해서 이를 복사한 후 연산한다.
+
+'''
+
+from collections import deque
+import copy
+
+v = int(input())
+indegree = [0] * (v+1)              #초기 진입차수 0으로 초기화
+graph = [[] for _ in range(v+1)]    #타임테이블이 들어갈 그래프 생성
+time = [0] * (v+1)                  #각 강의별 걸리는 시간을 0으로 초기화
+
+for i in range(1,v+1):
+    data = list(map(int,input().split()))
+    time[i] = data[0]               #초기 각 강의별 걸리는시간은 각 수업의 수업시간으로 배정 (선행수업시간 반영x)
+    for x in data[1:-1]:            #입력된 강의의 선행강의 내용을 하나씩 가져옴 ex) 4,3,1,-1이면 3,1순서로 가져옴
+        indegree[i] += 1            #해당 강의의 진입차수를 1개씩 선행수업한개당 +1씩 올림
+        graph[x].append(i)          #타임테이블 그래프에 '해당수업에 필요한 선행수업의 리스트'에 현재 검사중인 수업의 번호를 남김
+                                    #->[[], [2, 3, 4], [], [4, 5], [], []] 이런식
+
+def topology_sort_q4():
+    result = copy.deepcopy(time)    #각강의별 걸리는 시간에 선행수업시간을 계산하기위해 새로 복사해서 result라는 이름으로 가져옴
+    q = deque()
+
+    for i in range(1,v+1):
+        if indegree[i] == 0:
+            q.append(i)             #처음 위상정렬 함수 시작시, 유입차수가 0인노드를 큐에 삽입시킴
+    while q:                #큐가 빌때까지 수행
+        now = q.popleft()
+        for i in graph[now]:
+            result[i] = max(result[i],result[now]+time[i])      #graph기준, 1번노드부터 시작해서, 해당 노드를 선행수업으로하는 수업노드의시간에
+                                                                #현재 검사중인 수업노드의 수업시간과 합한것과, 원래의 수업중 더 긴시간을 result에 기록
+            indegree[i] -= 1                       #한번 이 연산을 할떄마다 진입차수를 -1씩함
+            
+            if indegree[i] == 0:                   #진입차수가 0이되면 큐에 해당 노드를 삽입
+                q.append(i)
+
+    for i in range(1,v+1):
+        print(result[i])        #계산한 각각의 수업을 이수하는데 필요한 총 시간을 출력함
+    
+topology_sort_q4()
+
+
+
+
+
+'''
+def find_parent_q4(parent,x):
+    if parent[x] != x:
+        parent[x] = find_parent_q4(parent,parent[x])
+    return x
+
+def union_parent_q4(parent,a,b):
+    a = find_parent_q4(parent,a)
+    b = find_parent_q4(parent,b)
+    if a<b:
+        parent[b] = a
+    else:
+        parent[a] = b
+
+#n=int(input())
+n=5
+
+parent = [0] * (n+1)
+for i in range(1,n+1):
+    parent[i] = i   #자기자신을 부모로 초기화
+
+indeed = [0] * (n+1)                    #유입차수를 0으로 초기화
+
+#lecture = [[]]                          #빈 리스트를 만들어줌
+#for i in range(n):
+#    data = list(map(int,input().split()))           #수업내용을 리스트로 받아서 lecture 빈 리스트에 하나씩 할당
+#    lecture.append(data)
+lecture = [[], [10, -1], [10, 1, -1], [4, 1, -1], [4, 3, 1, -1], [3, 3, -1]]
+
+#lecture 1번자리부터 리스트를 가져오는데, 첫번째는 시간에 할당, 두번째부터는 해당 노드의 부모 노드에 해당함. 그리고 해당 부모노드의 시간을 총합한 값을 반환함.
+total_hour = 0
+for i in range(1,n+1):
+    for j in range(1,len(lecture[i])):
+        hour = lecture[i][0]
+        if j == -1:
+            break
+        union_parent_q4(parent,i,j)
+        print(parent)
+        for _ in range(i):
+            find_parent_q4(parent,i)
+            total_hour+=lecture[i][0]
+        print(total_hour)
+'''
