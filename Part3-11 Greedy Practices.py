@@ -189,7 +189,7 @@ print(min(count0,count1))
 처음에 가져오는 수가 1이면 2를 검사대상으로 삼게된다.
 다음가져오는 수가 2이면 
 '''
-
+'''
 n=int(input())
 coin=list(map(int,input().split()))
 coin.sort()
@@ -206,4 +206,123 @@ for i in coin:
         break
     check+=i
 
+'''
 
+
+#Q5 볼링공 고르기 (9:20)
+'''
+우선 입력된 무게 1 3 2 3 2에 각각 index기준으로 dict화 한다? 굳이?
+
+그냥 오름차순 1 2 2 3 3으로 하고 i번째와 j번째(구간은 n-i)에서 하나씩 매칭하면서 i의 무게값과 j의 무게값이 같으면 패스, 다르면 카운트 +1
+-> 사실 오름차순 할필요도 없음. 
+'''
+
+'''#내풀이
+n,m= map(int,input().split())
+data=list(map(int,input().split()))
+
+count=0
+for i in range(n):
+    for j in range(i+1,n):
+        if data[i]!=data[j]:
+            count+=1
+        else:
+            pass
+
+print(count)
+'''
+
+'''#해설 -> 순차적으로 올라가면서 검사하는것은 똑같지만, 여기서는 리스트변수에 이를 저장해가면서 계산했음
+
+n,m= map(int,input().split())
+data=list(map(int,input().split()))
+
+array=[0]*11
+
+for x in data:
+    array[x] += 1  #무게를 array의 index로하여, 무게별 공의 갯수를 array에 저장한다.
+
+result = 0
+for i in range(1,m+1):  #1부터 최대무게까지 공의 무게를 순차적으로 가져와서 검사
+    n-=array[i]         #전체갯수 - 검사하는 무게의 공의 갯수 = 검사하는 무게 외의 다른 모든 무게의 공의 갯수
+    result += array[i] * n      # 검사대상 * 검사대상 외의 무게 공 총 갯수 -> 단, 여기서 for문을 통해 검사대상 공의 무게는 순차적으로 올라가고
+                                #이때문에 이전 검사 무게보다 낮은 공은 검사하지않음 -> 중복제외!
+print(result)
+'''
+
+
+#Q6 무지의 먹방 라이브 (29:34)
+
+'''#내답 -> 답은 정확히 나오지만, 시간에서 다 걸려버림 
+def solution(food_times, k):
+    
+    dish_len = len(food_times) #음식종류 갯수
+    round_count=0              #다음에 먹을 음식번호
+    complete = [0] * dish_len  #다먹었는지 확인. 다먹으면 1로 표기
+    
+    for x in range(k+1):
+        print(round_count,food_times)
+        while complete[round_count]!=0:
+            round_count+=1
+            if round_count==dish_len:
+                round_count=0
+        if x==k:
+            answer=round_count+1
+
+        food_times[round_count]-=1
+
+        if food_times[round_count]==0:
+            complete[round_count]=1
+        round_count+=1
+        if round_count==dish_len:
+                round_count=0
+
+    return answer
+'''
+
+#해설 시간이 지나고난 후 먹어야할 음식을 구하기만 하면 되는것! -> 순차적으로 수행할 필요없이 시간을 바로 food times에서 빼버린다.
+#0이 되버린 음식은 heapq를 이용해서 순차적으로 먹는데 시간이 적게 걸리는 순서대로 지워나가면서 현재 남은시간과 남은 음식시간을 비교하며 결과 도출
+
+import heapq
+
+def solution(food_times,k):
+
+    if sum(food_times) <=k:         #우선, 모든 음식을 먹는데 걸리는 시간보다 k가 크면 음식을 다먹어버렸기때문에 -1을 반환시킴
+        return -1
+
+    q=[]
+    for i in range(len(food_times)):
+        heapq.heappush(q, (food_times[i],i+1))      #(음식을 다먹는데 걸리는 시간,음식번호)로 힙큐에 저장한다.
+        
+    sum_value = 0               #먹기위해 사용한시간
+    privious = 0                #직전에 다먹은 음식의 시간
+    length = len(food_times)    #남은 음식의 갯수
+
+    #일단 먹기위해 사용한시간 + (현재검사중인 음식을 다먹는데 걸리는 시간 * 남은음식종류)이 k이상이 될때까지 계속 반복한다.
+    #음식하나를 제거할때마다 heapq에서 다음으로 다먹을수있는 음식을 가져온다.
+    while sum_value + ( (q[0][0] - privious) * length ) <= k:       #[5,7,4],14 기준, 가장먼저 다먹게 되는 음식은 3번이다.
+        print(sum_value,q)                                          #3번음식을 다먹는다면 1번 2번음식도 4(=privious)씩 먹었다는 의미이다
+        now = heapq.heappop(q)[0]                                   #now는 검사대상음식을 먹는데 걸리는 총 시간을 의미한다.
+        print(sum_value,now, q)
+        sum_value += (now - privious) * length                      #지금까지 먹기위해 사용한 총 시간에 현재 음식을 다먹는데 걸리는 시간을 더한다.
+        print(sum_value)
+        length -= 1                                 #다먹은 음식은 종류 갯수에서 제거한다.
+        privious = now                              #이제 다먹은 음식의 총시간을 갱신 (3번음식을 다먹을때는 4(+4), 1번음식을 다먹을때는 5(+1))
+    '''
+    0 [(4, 3), (7, 2), (5, 1)] -> 첫번쨰 힙큐리스트 -> (4,3)을 가져온다
+    0 4 [(5, 1), (7, 2)]       -> 제일 먼저다먹을 수 있는 3번음식의 걸리는시간 4에 대해 검사 시작 -> 완료후에도 12 <= k(=14)이므로 계속 수행
+    12       ->3번음식을 다먹는데 걸리는 시간은 12
+    12 [(5, 1), (7, 2)]         -> 두번째 힙큐리스트 -> (5,1)을 가져온다.
+    12 5 [(7, 2)]               -> 두번째로 다먹을 수 있는 음식 1번에 대해서 가져온다. -> 완료후 
+    14       -> 1번음식은 3번음식을 먹으면서 이미 4의 시간이 빠져서 1이 남았다. 그렇기에 1번음식을 다먹는데 걸리는시간은 1(1번음식시간) * 2(남은음식종류 1,2번) = 2가 더해진 14이다
+    ->이제 while문의 거짓조건이 되므로 빠져나온다.
+    '''
+    result = sorted(q, key= lambda x : x[1])            #계산이 끝나면 남은 q를 번호 순서대로 다시금 정렬한다.
+    return result[ (k - sum_value) % length][1]         #초기입력 k시간 - 지금까지 먹는데 사용한 시간 = k시간중 남은 시간 
+                                                        # -> 이것을 남은 음식 종류로 나누어서 그 나머지번호의 음식 번호값을 반환
+                                                        #(이미 위에서 더이상 k시간중 남은 시간으로 인해 다먹어서 0이되지 않게끔 계산했기 때문에 무조건 이상없이 결과가 나온다.)
+
+print(solution([5,7,4],14))
+
+    
+    
