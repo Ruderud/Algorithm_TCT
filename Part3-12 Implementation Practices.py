@@ -223,7 +223,7 @@ new lock array
 '''
 
 
-
+'''
 def rotate_90degree (key):         #회전함수. 이거는 시계방향으로 90도 회전시킨다.
     n = len(key)          #세로길이
     m = len(key[0])       #가로길이
@@ -266,8 +266,82 @@ def solution(key,lock):
                     for j in range(m):
                         new_lock[x+i][y+j]-=key[i][j]   #(A)에서 new_lock에 더했던 key값을 다시 빼서 원래의 new_lock배열로 되돌린다
     return False    #위 과정을 전부 수행했는데 답이안나왔다면 키가 배열에 맞지 않는것이므로 false를 반환한다
-                
-                    
+'''
 
     
     
+#11 뺌!
+'''
+맵을 만들고 방향 좌우 설정
+움직임은 뱀의 몸길이를 숫자로 배정한다.
+움직임 머리만 일단 움직이는걸로하고, 몸은 그뒤에 이어지는것으로 생각
+머리가 움직이다가 나아갈곳에 사과(1)이 있으면 사과가 머리가 된다.
+리스트에 뱀의 머리를 0위치에 지정, 사과를 먹고 몸이 생길때마다 좌표를 하나씩 추가한다.
+for 문을 이용해서 맨앞 몸은 머리의 위치로 가고, 그 이후의 몸은 이전의 몸의 위치로 이동한다
+'''
+
+
+
+n = int(input())
+k = int(input())
+
+data = [ [0] * (n+1) for _ in range(n+1) ]             #맵을 만든다
+info = []                                               #방향 회전 정보
+
+for _ in range(k):                                      #사과를 1로 하여 배정
+    x,y=map(int,input().split())
+    data[x][y] = 1
+
+
+l = int(input())                                        #방향 회전정보 입력
+for _ in range(l):
+    x,c = input().split()                               #시간은 끊어가는것이아니라, 연속된 시간으로써 입력하는거라는것을 상기! (게임시작을부터의 시간이니까!) 
+    info.append((int(x),c))                             #(이동하는시간,방향전환)의 튜플값으로 info 리스트에 저장
+
+#여기 방향전환이 핵심아이디어
+dx = [0, 1, 0, -1]                                      #처음에 오른쪽을 보니까 동, 남, 서, 북 순서로 표기
+dy = [1, 0, -1, 0]
+
+def turn(derection,c):                                  #처음방향에서 +1한다는것은 오른쪽을 향한다는것임. 반대로 -1은 왼쪽으로 항한다는 것이다.
+    if c == "L":                                        #이때 여기서 4로나눈 나머지를 구하는 이유는 0~3의 범위에서 벗어나지 않게끔 하기위함
+        direction = (derection - 1) % 4                 # ex) (0 - 1) % 4 = 3 -> 동쪽에서 왼쪽으로 전환해서 -1이 되었는데, -1로 표기하면 문제가 생기므로 4로나눈 나머지인 3화 시킴
+    else :
+        direction = (derection + 1) % 4
+    return direction
+
+def simulate():
+    x, y = 1, 1                                         #초기 뱀의 머리위치
+    data[x][y] = 2                                      #뱀이 있는 위치는 2로 표기
+    direction = 0                                       #처음에는 오른쪽(동쪽)을 보고있음
+    time = 0                                            #시작한뒤에 지난 시간(초)
+    index = 0                                           #다음에 회전할 정보
+    q = [(x, y)]                                        #뱀이 차지하고있는 위치 정보(위치정보쌍 위치가 앞쪽이 꼬리, 맨뒤가 머리)
+    while True:
+        nx = x + dx[direction]
+        ny = y + dy[direction]
+        
+        if 1 <= nx and nx <= n and 1 <= ny and ny <= n and data[nx][ny] != 2 : #다음칸이 움직일수있는 정상범주내라면
+            if data[nx][ny] == 0:       #그냥 빈땅이라면
+                data[nx][ny] = 2        #거기에 머리를 두고
+                q.append((nx,ny))       #뱀이 차지할 위치정보에 새로 이동한 땅의 위치를 입력한다
+                px, py = q.pop(0)       #뱀의 맨뒤에있던 꼬리를 위치정보를 빼서, px,py값에 할당한다
+                data[px][py] = 0        #꼬리가 있던곳을 빈땅으로 처리한다
+            
+            if data[nx][ny] == 1:       #사과가 있다면
+                data[nx][ny] = 2        #사과가 있던 자리를 뱀의 머리로한다
+                q.append((nx,ny))       #사과를 먹고 커진 뱀의 머리위치를 뱀의 전체 몸 위치 정보에 갱신한다 (맨뒤에할당)
+        
+        else :                                                                #다음칸이 움직일 수 없는칸이라면
+            time += 1                   #부딛힌 순간의 시간을 갱신하고 while문 종료
+            break
+
+        x, y = nx, ny                   #움직인 새로운 다음 위치를 머리의 위치로 할당
+        time += 1                       #움직였으니 시간 +1초
+        if index <1 and time == info[index][0]:                               #info의 index번째 튜플값 첫번째=이동하는 시간 -> 방향전환할 시간이되면 할당된 좌/우값방향으로 방향전환 
+            direction = turn(direction, info[index][1])                       #info 리스트에 저장되어있는 index번째 튜플값의 두번째값인 방향전환값을 가져와서 방향전환시킴
+            index += 1                                                        #방향전환했으면 다음 튜플값으로 넘긴다
+    
+    return time
+
+print(simulate())
+
