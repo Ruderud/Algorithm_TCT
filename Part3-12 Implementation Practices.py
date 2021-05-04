@@ -281,7 +281,7 @@ for 문을 이용해서 맨앞 몸은 머리의 위치로 가고, 그 이후의 
 '''
 
 
-
+'''
 n = int(input())
 k = int(input())
 
@@ -344,4 +344,102 @@ def simulate():
     return time
 
 print(simulate())
+'''
 
+#Q13 기둥과 보 설치 (35분 over. 풀긴풀었음)
+
+n = 5
+
+'''
+bulid_frame = [         #[x,y,a,b] a=0은 기둥, 1은 보 / b=0은 제거, 1은 설치
+    [1,0,0,1],
+    [1,1,1,1],
+    [2,1,0,1],
+    [2,2,1,1],
+    [5,0,0,1],
+    [5,1,0,1],
+    [4,2,1,1],
+    [3,2,1,1]
+]
+'''
+build_frame = [         #[x,y,a,b] a=0은 기둥, 1은 보 / b=0은 제거, 1은 설치
+    [0,0,0,1],
+    [2,0,0,1],
+    [4,0,0,1],
+    [0,1,1,1],
+    [1,1,1,1],
+    [2,1,1,1],
+    [3,1,1,1],
+    [2,0,0,0],
+    [1,1,1,0],
+    [2,2,0,1]
+]
+
+'''
+result = []
+
+#깊이가 너무깊으니 이걸 끌어올려야함
+for i in build_frame:           #i번째 빌드프레임 입력값에 의해 수행
+    x,y,a,b = i[0],i[1],i[2],i[3]
+
+    if a == 0 and b == 0:      #기둥을 설치할때
+        if ([x-2,y+1,1] and [x-1,y+1,1] and [x,y+1,1] and [x+1,y+1,1] in result) or (not [x,y+1,0] in result) : #기둥과 이어진보가 좌2우2범위로 다 이어져서 무너지지않을때, 또는 위에 기둥이없을때
+            result.remove([x,y,a])
+            continue
+        else: continue
+
+    elif a ==0 and b == 1:     #기둥을 제거할때
+        if y == 0 or ([x-1,y,1] in result) or ([x,y-1,0] in result) :       #바닥위, 보 위에, 기둥위에 있을때
+            result.append([x,y,a])
+            continue
+        else: continue
+
+    elif a == 1 and b == 0:    #보를 설치할때
+        if ([x,y-1,0] and [x+1,y-1,0] in result):   # 제거한 보의 양쪽의 보가 각각 지지할수있는 기둥이 있다면 제거한다.
+            result.remove([x,y,a])
+            continue
+        else : continue
+
+    elif a == 1 and b == 1:     #보를 제거할때
+        if ([x,y-1,0] in result) or ([x+1,y-1,0] in result) or ([x-1,y,1] and [x+1,y,1] in result):       #기둥위에 보(기둥의 오른쪽에 / 기둥의 왼쪽에)를 올리거나, 양쪽에 보가있을때
+            result.append([x,y,a])
+            continue
+    else: continue
+
+result.sort()
+
+print(result)
+'''
+
+'''#해설 - 조건을 문장안에 합치지않고, 함수로 분리하여서 사용했음.
+
+def possible(answer):               #설치물이 조건에따라서 건설되어있는지 확인하는 함수
+    for x, y, stuff in answer:
+        if stuff == 0:              #기둥을 검사 -> 바닥에설치했거나/왼쪽아래에 보가있거나/오른쪽아래에 보가있거나/아래에 기둥이있다면 가능
+            if y == 0 or [x-1,y,1] in answer or [x,y,1] in answer or [x,y-1,0] in answer:
+                continue
+            return False
+        elif stuff == 1:            #보를 검사 -> 왼쪽아래에 기둥이 있거나/오른쪽아래에 기둥이 있거나/보의 양쪽에 보가 있다면 가능
+            if [x,y-1,0] in answer or [x+1,y-1,0] in answer or ([x-1,y-1,1] in answer and [x+1,y,1] in answer):
+                continue
+            return False
+    return True
+
+def solution(n,build_frame):
+    answer = []
+    for frame in build_frame:
+        x,y,stuff,operate = frame
+        if operate == 0:                #제거 공정에서 먼저 제거해보고, 안되면 다시 복구
+            answer.remove([x,y,stuff]) 
+            if not possible(answer):
+                answer.append([x,y,stuff])
+        
+        if operate == 1:                #추가 공정에서 먼저 추가해보고, 안되면 다시 제거
+            answer.append([x,y,stuff])
+            if not possible(answer):
+                answer.remove([x,y,stuff])
+
+    return answer
+
+solution(n, build_frame)
+'''
