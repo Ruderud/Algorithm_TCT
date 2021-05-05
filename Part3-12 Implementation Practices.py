@@ -443,3 +443,115 @@ def solution(n,build_frame):
 
 solution(n, build_frame)
 '''
+
+
+#Q13 치킨배달
+'''
+각 집에서 치킨집까지의 거리를 계산해서 리스트화 한다. [1,2,3,4,5....]
+치킨집 m개를 뽑아서 각 치킨집에서 모든집에 대한 거리중, 가장 낮은값을 result에 더해가면서 모든집에 대한 연산을 실행.
+이후 그결과를 출력
+
+근데 치킨집을 뽑는 조합을 어떻게 구현할 것인가? ->itertools의 콤비네이션을 쓰자 (nCr꼴로 조합을 만들어줌)
+'''
+
+'''#내답 -> for문을 지나치게많이썼다. 함수를 따로 할당해서 for/if문의 깊이를 얕게하는데 신경을 좀 쓰자!
+
+from itertools import combinations          #치킨집 m개조합을 만들어줄 라이브러리를 가져옴
+
+n, m = map(int, input().split())            #n,m,지도값을 입력받고, 지도값에서 집과 치킨집의 좌표를 할당
+array=[]
+chicken=[]
+house=[]
+for i in range(n):
+    data = list(map(int,input().split()))
+    array.append(data)
+    count=0
+    for j in data :
+        if j == 2:
+            chicken.append((i,count))
+        elif j == 1:
+            house.append((i,count))
+        count+=1
+
+chicken_range = [ [] for _ in range(len(house)) ]
+
+a=0
+for hx,hy in house:
+    for cx,cy in chicken:
+        range_data = abs(hx-cx) + abs(hy-cy)
+        chicken_range[a].append(range_data)         #각집에서 각치킨집까지의 거리값을 리스트화함
+    a+=1
+
+chicken_num = [ i for i in range(len(chicken))]
+
+
+comb_chicken = combinations(chicken_num, m)         #m개남길 치킨집의 조합을 iter화해서 comb_chicken에 할당
+
+result_range_list = []
+
+#조합은 나왔다 이제 이걸로 각 집에서 조합의 치킨집까지의 거리중, 작은값을 계속해서 더한 결과값을 /각 치킨집 조합수만큼 리스트에 넣고 그중 최소값을 반환
+
+for c in list(comb_chicken):    #치킨집 조합을 가져옴 (0,1)
+    min_range = 0
+
+    for d in chicken_range: #조합을 가져옴 d = (2,6,7,6,5)
+        compare=[]          #조합의 치킨집 거리비교용 리스트
+        for element in c:
+            compare.append(d[element])  #비교용리스트에 값을 할당 -> 2, 6
+
+        min_range += min(compare) #더 작은값을 minrange에 계속 더함 [2,6]-> +2
+        compare = []    #비교가 끝나면 다시 초기화
+
+    result_range_list.append(min_range)     #각 치킨집 조합별 치긴거리값을 리스트에넣음
+    min_range = 0   #치킨집 조합 하나 끝날때마다 치킨거리값 초기화
+
+print(min(result_range_list))   #조합별 치킨거리값중 가장 작은값을 출력
+'''
+
+'''nCr 조합을 만들어주는 라이브러리
+from itertools import combinations
+
+# Get all combinations of [1, 2, 3]
+# and length 2
+comb = combinations([1, 2, 3], 2)
+  
+# Print the obtained combinations
+for i in list(comb):
+    print (i)
+'''
+
+#해답 -> 여기또한 combination 라이브러리를 가져와서 사용
+
+from itertools import combinations
+
+n,m = map(int, input().split())
+chicken, house = [], []
+
+for r in range(n):
+    data = list(map(int, input().split()))
+    for c in range(n):
+        if data[c] == 1:
+            house.append((r,c)) #맵입력중 집이있으면 좌표입력
+        elif data[c] == 2:
+            chicken.append((r,c)) #치킨집이 있으면 좌표입력
+
+candidates = list(combinations(chicken, m))     #아예 치킨집 조합을 여기서 리스트화해서 짜버림
+
+def get_sum(candidate):        #각집에서 치킨집까지 최소거리를 계산하고, 이를 전부다 합한 도시치킨거리값을 구함
+    result = 0
+
+    for hx,hy in house:
+        temp = 1e9      #처음에 무한값을 할당
+        
+        for cx,cy in candidate:
+            temp = min(temp, abs(hx-cx) + abs(hy-cy))       #모든집에 대해서 치킨집까지의 거리중 가장 가까운거리를 계산
+        
+        result += temp  #가장가까운 치킨집까지의 거리를 더함 -> 도시치킨거리값
+    return result       #도시치킨거리값을 반환
+
+result = 1e9    #도시치킨거리값의 최소값을 처음에 무한으로 할당함
+for candidate in candidates:
+    result = min(result, get_sum(candidate))    #치킨집 조합에 따른 도시치킨거리값의 최소값을 계속해서 갱신
+
+print(result)   
+
