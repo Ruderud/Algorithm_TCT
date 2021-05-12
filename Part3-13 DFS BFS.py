@@ -217,3 +217,112 @@ def dfs(count):
 dfs(0)
 print(result)
 '''
+
+#Q17 경쟁적 전염
+
+'''#내답
+n, k = map(int,input().split())
+array = []
+virus_site = [[] for _ in range(k+1)]
+
+for i in range(n):
+    line=list(map(int,input().split()))
+    array.append(line)
+    for j in range(len(line)):  #1 0 2 i=0
+        if line[j] == 0:
+            continue
+        else :
+            virus_site[line[j]].append([i,j])
+
+s, x, y = map(int,input().split())
+
+#북동남서
+dx = [-1,0,1,0]
+dy = [0,1,0,-1]
+
+def infest(array):
+    new_array = array
+    for num in range(1,k+1):
+        for site in virus_site[num]:
+            x,y = site[0],site[1]
+
+            for i in range(4):
+                nx=x+dx[i]
+                ny=y+dy[i]
+                if nx<0 or nx>=n or ny<0 or ny>=n:   #바이러스가 움직일칸이 범위밖이면 패스
+                    continue
+
+                if array[nx][ny] == 0:  #바이러스가 갈곳이 비어서 이동가능하다면 이동
+                    new_array[nx][ny] = num    #맵에 표시
+                else:                   #그밖의 상황은 패스
+                    continue
+    return new_array
+    
+def renew_virus_site(array,virus_site):
+    new_virus_site = [[] for _ in range(k+1)]       #이전의 바이러스 위치를 초기화
+    for i in range(n):
+        for j in range(n):
+            if array[i][j] == 0:    #여전히 빈칸이면 패스
+                continue
+            else :
+                new_virus_site[array[i][j]].append([i,j])   #바이러스 번호에 맞는 순서의 site리스트에 위치값을 저장
+    return new_virus_site
+
+
+for i in range(s):      #s초 수행 = s번 수행
+    print(i+1,'초쨰')
+    array = infest(array)            #바이러스 순차적 감염
+    virus_site = renew_virus_site(array,virus_site)  #감염후 맵의 상태에 따라 virus_site를 갱신함 
+    print('감염후 맵',array)
+    print(virus_site)
+
+print(array[x-1][y-1])  #x,y위치의 상태를 출력
+'''
+
+#해설: 기본적으로 bfs적으로 해결가능함. 낮은번호부터 바이러스를 감염시키게 큐에다가 바이러스를 할당하면된다.return
+
+from collections import deque
+
+n,k = map(int,input().split())
+
+graph = []      #맵데이터를 담는 리스트
+data = []       #바이러스 정보를 담는 리스트
+
+for i in range(n):
+    graph.append(list(map(int,input().split())))
+    for j in range(n):
+        if graph[i][j] != 0:
+            data.append((graph[i][j],0,i,j))        #초기 맵 입력시 바이러스가 있다면 (바이러스숫자,입력시간,x,y)데이터 순으로 입력한다
+
+data.sort() #바이러스 정보를 바이러스 숫자 순으로 정렬
+q = deque(data) #큐에 바이러스 정보를 할당함
+
+target_s, target_x, target_y = map(int,input().split())
+
+#북동남서
+dx = [-1,0,1,0]
+dy = [0,1,0,-1]
+
+while q:
+    virus, s, x, y = q.popleft()
+    if s == target_s:
+        break               #s시간이 다되거나, 바이러스가 움직이는 큐가 다 비게되면 중지
+
+    for i in range(4):
+        nx=x+dx[i]
+        ny=y+dy[i]
+
+        if nx>=0 and ny>=0 and nx<n and ny<n:       #움직일수 있는 범위내이고 움직일곳이 0이라면
+            if graph[nx][ny] == 0:
+                graph[nx][ny] = virus               #움직일 곳을 virus번호로 뒤집어씌우고 큐에 해당 바이러스정보를 추가한다
+                q.append((virus,s+1,nx,ny))         #위에서 이미 바이러스 순서대로 리스트를 정리했기때문에 이렇게 순차적으로 추가해도 순서가 꼬일일은 없음
+
+print(graph[target_x-1][target_y-1])
+
+
+
+
+
+
+
+
