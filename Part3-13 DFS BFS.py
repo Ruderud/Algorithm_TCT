@@ -279,8 +279,7 @@ for i in range(s):      #s초 수행 = s번 수행
 print(array[x-1][y-1])  #x,y위치의 상태를 출력
 '''
 
-#해설: 기본적으로 bfs적으로 해결가능함. 낮은번호부터 바이러스를 감염시키게 큐에다가 바이러스를 할당하면된다.return
-
+'''#해설: 기본적으로 bfs적으로 해결가능함. 낮은번호부터 바이러스를 감염시키게 큐에다가 바이러스를 할당하면된다
 from collections import deque
 
 n,k = map(int,input().split())
@@ -318,11 +317,105 @@ while q:
                 q.append((virus,s+1,nx,ny))         #위에서 이미 바이러스 순서대로 리스트를 정리했기때문에 이렇게 순차적으로 추가해도 순서가 꼬일일은 없음
 
 print(graph[target_x-1][target_y-1])
+'''
+
+#18  괄호 변환
+'''
+균형잡힌 문자열 = [ [올바른 문자열], [올바르지 않은 문자열]]
+
+조건
+1. 빈문자열 -> 빈문자열로 반환
+2. 입력문자열 -> u(균형잡인 문자열) + v(균형잡힌문자열, 공백가능) //이두개는 각각이 더이상 쪼개지지 않을때까지 반복
+
+문자열을 위 규칙대로 잘랐을때 맨앞이 (이면 올바름, )이면 올바르지 않음임
+'''
 
 
+'''#내답 -> 정확도 32/100
+w = str(input())
 
+data=[]
 
+def divide_str(w):
+    i=0
+    a=w[i]
 
+    while a.count('(') != a.count(')'):
+        i+=1
+        a += w[i]
+    
+    data.append(a)
+    
+    if i+1 < len(w):
+        divide_str(w[i+1:])
+    else:
+        data.append('')
 
+def sol(w):
+    answer = ''
 
+    divide_str(w)
+    i=0
 
+    stack = []
+
+    for element in data:
+        if element == '' or element[0] == '(':    #올바른 배열 또는 공백배열을 만나게되었을때 -> 올바르지않은배열이 스텍에 있을때 /없을때로 구분
+            if not stack:                         #스택에 뭐가 없을때
+                answer += element                 #그냥 출력
+
+            else:                                    #스텍에 뭔가가 있을때
+                answer += '(' + element + ')'        #일단 현재 올바른 배열이나 공백배열을 괄호에 싸서 먼저 출력
+
+                while stack:                         #스택을 모두뺄때까지 반복
+                    a = stack.pop()                  #스텍의 '뒤에서부터' 하나씩 순차적으로 빼옴
+                    answer += a[-2:0:-1]             #빼온 스택의 앞뒤문자열을 제외하고 역순으로 answer에 추가함
+                
+        else:                                     #올바르지 않은 배열을 만났을때
+            stack.append(element)                 #스텍에 추가함
+    
+    return answer
+
+print(sol(w))
+'''
+
+'''#해답 근데 이것도 정확도점수는 52점밖에안나오는데 ㅡㅡ
+def balanced_index(p):          #문자열 p에 대해서, 균형잡힌 문자열의 위치 인덱스를 알려줌; 괄호왼쪽과 오른쪽의 갯수차이를 이용, 0이될때의 위치를 반환
+    count = 0
+    for i in range(len(p)):
+        if p[i] == '(':
+            count += 1
+        else:
+            count -= 1
+        
+        if count == 0:
+            return i
+    
+def check_proper(p):            #문자열 p에 대해서, 올바른 괄호문자열인지 확인
+    count = 0
+    for i in p:
+        if i == '(':
+            count += 1
+        else:
+            if count == 0:
+                return False
+            count -= 1          #왼쪽괄호의 갯수를 더하고 오른쪽 괄호를 빼다가, 0인 상태에서 오른쪽괄호를 만나게되면(짝이 안맞게되면) false반환
+    return True                 #무사히 문자열 모든 위치를 확인한다면 True반환
+
+def solution(p):
+    answer=''
+    if p == '':
+        return answer
+    index = balanced_index(p)
+    u = p[:index+1]
+    v = p[index+1:]
+
+    if check_proper(u):
+        answer = u + solution(v)
+
+    else:
+        answer = '(' + solution(v) + ')' + u[-2:0:-1]
+    return answer
+
+print(solution('()))((()'))
+'''
