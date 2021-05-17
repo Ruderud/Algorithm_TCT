@@ -419,3 +419,106 @@ def solution(p):
 
 print(solution('()))((()'))
 '''
+
+#19 연산자 끼워 넣기
+'''
+
+'''
+
+'''#내답
+from itertools import permutations
+
+n = int(input())
+number = list(map(int,input().split()))
+calculator = list(map(int,input().split()))
+
+calculator_rawlist=[]
+
+for i in range(4):                      #사칙연산 (0,1,2,3)에 매치해서 리스트에 나열함
+    for num in range(calculator[i]):
+        calculator_rawlist.append(i)
+
+cal_match = list(permutations(calculator_rawlist,len(calculator_rawlist)))      #같은 부호일때 위치를 구별한 조합을 생성
+
+def Remove(lst):        #동일 결과를 나타내는 리스트를 제거
+     res = []
+     check = set({})        #비어있는상태의 set인 {} 를 만든다
+  
+     for x in lst:          #조합을 하나씩 가져와서 튜플화 시킨다. (기존의 리스트타입은 헤시가능하지않기 때문 -> 변동가능성이 없는값만이 set에서 중복을제거할 때 사용가능)
+         hsh = tuple(x)
+         if hsh not in check:       #가져온 조합이 체크리스트에있는거면 패스, 없는거면 결과리스트에 추가하고 체크리스트에 추가함.
+             res.append(x)
+             check.add(hsh)
+               
+     return res
+
+def calculate(number,comb):     #숫자 순서 1 2 3 4 5 6 과 여러 연산자 배열중 하나인 + + - * / 를 수행
+    result=number[0]
+
+    for i in range(len(comb)):
+        if comb[i] == 0:                        # +부호
+            result = result + number[i+1]
+        elif comb[i] == 1:
+            result = result - number[i+1]
+        elif comb[i] == 2:
+            result = result * number[i+1]
+        else :                                  # /부호일때, 이전까지의 결과값이 음수일때와 양수로일때로 나눔
+            if result <0:
+                result = ( abs(result) // number[i+1] ) * -1
+            else :
+                result = result // number[i+1]
+    return result
+
+Remove(cal_match)
+
+INF = 1e9
+max_min = [(INF*-1),INF]
+
+for comb in cal_match:
+    result = calculate(number,comb)
+    max_min[0] = max(max_min[0],result)
+    max_min[1] = min(max_min[1],result)
+
+print(max_min[0])
+print(max_min[1])
+'''
+
+'''#해설 여기답은 dfs적으로 풀었으나, from itertools import product 이런함수를 쓸수도있음 -> n=4일때 사칙연산중 중복을 허용하여 3개를 뽑아서 나열함 
+n=int(input())
+data = list(map(int,input().split()))
+add, sub, mul, div = map(int,input().split())           #잔여 부호 갯수를이용하여 dfs를 돌림
+
+min_value = 1e9
+max_value = -1e9
+
+def dfs(i,now):
+    global min_value, max_value, add, sub, mul, div
+    if i == n:      #연산자를 모두 사용했을때, 최소/최대값을 갱신
+        min_value = min(min_value,now)
+        max_value = max(max_value,now)
+
+    else:
+        if add>0:                   # +부호가 남아있을때
+            add -= 1                #하나를 가져와서
+            dfs(i+1, now+data[i])   #현재까지 더한 숫자에 지금가져온 숫자를 더한 연산을 해서 dfs연산을 재귀화
+            add += 1                #연산이 끝나면 사용한 +부호를 다시 되돌려놓음 (가지가 뻗어나가야하므로)
+
+        if sub>0:
+            sub -= 1
+            dfs(i+1, now-data[i])
+            sub +=1
+        
+        if mul>0:
+            mul -= 1
+            dfs(i+1, now*data[i])
+            mul += 1
+        
+        if div>0:
+            div -= 1
+            dfs(i+1, int(now/data[i]))      #나눗셈할때는 소수부분을 절삭
+            div += 1
+
+dfs(1,data[0]) #연산시작
+print(max_value)
+print(min_value)
+'''
