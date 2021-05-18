@@ -522,3 +522,268 @@ dfs(1,data[0]) #연산시작
 print(max_value)
 print(min_value)
 '''
+
+
+#Q20 감시피하기 (45분)
+
+
+'''#내답. 좀 비효율적인부분이 많이보이지만 시간내(50분)내에 풀었음
+from itertools import combinations
+
+n = int(input())
+array = []
+for _ in range(n):
+    array.append(list(map(str,input().split())))
+
+teacher = []
+student = []
+empty = []
+
+for i in range(n):                  #각각의 선생/학생/빈공간정보를 따로 돌리지않고, 위에 data input시 같이 수행했다면 더 효율적
+    for j in range(n):
+        if array[i][j] == 'T':
+            teacher.append((i,j))
+        elif array[i][j] == 'S':
+            student.append((i,j))
+        else :
+            empty.append((i,j))
+
+object_comb = list(combinations(empty,3))
+
+def build(array,comb):
+    built_array = array
+    for x,y in comb:
+        built_array[x][y] = 'O'
+    return built_array
+
+def search(built_array,teacher,n,comb):     #여기서 맵범위 바깥에 해당하는 시야를 제거했다면 메모리 다이어트가능 + for문을 하나 더 썼다면 굳이 x,y에 일일히 +-1씩 할필요없었을듯
+    for x,y in teacher:
+
+        for i in range(1,n):
+            if (x,y-i) in comb:             #좌측시야 추가. 이때 장애물이 설치되어있다면 더이상 해당방향으로 시야를 늘리지않고 끝냄
+                break
+            search_site.append((x,y-i))
+
+        for i in range(1,n):
+            if (x,y+i) in comb:             #우측 추가
+                break
+            search_site.append((x,y+i))
+
+        for i in range(1,n):
+            if (x-i,y) in comb:             #위쪽 추가
+                break
+            search_site.append((x-i,y))
+
+        for i in range(1,n):
+            if (x+i,y) in comb:             #아래쪽쪽 추가
+                break
+            search_site.append((x+i,y))
+
+def confirm(student,search_site):
+    for i in student:
+        if i in search_site:        #선생시야안에 학생이 있다면 true반환
+            return True
+    return False
+
+result=0
+for comb in object_comb:
+    built_array = build(array,comb)             #조합에 따라서 맵에다가 조형물을 설치한값을 출력
+    search_site = []
+    search(built_array,teacher,n,comb)          #장애물 설치한 맵에 대해서 교사가 감시하는 지역을 search_site에 저장
+    if not confirm(student,search_site):        #감시하는 지역내에 학생이 있는지 확인해서, 학생이 선생시야내에 없으면 결과값을 1로하여 검사를 끝냄
+        result = 1
+        break
+
+if result == 1:
+    print("YES")
+else:
+    print("NO")
+'''
+
+'''#해답. 해답도 combination 라이브러리를 사용했음 대신, 선생별로 watch()메서드를 따로만들어서 검사하게끔 하는 방식을 이용
+
+from itertools import combinations
+
+n = int(input())
+board = []
+teachers = []
+spaces = []
+
+for i in range(n):
+    board.append(list(input().split()))
+    for j in range(n):
+        if board[i][j] == "T":
+            teachers.append((i,j))
+        if board[i][j] == "X":
+            spaces.append((i,j))
+
+def watch(x,y,direction):       #방향0,1,2,3에 따라 각각 좌/우/상/하 를 직선으로 검사하고, 중간에 학생이 발견되면 true, 장애물이면 false, 맨땅이면 다음칸 검색함
+    if direction == 0:
+        while y >= 0:
+            if board[x][y] == 'S':
+                return True
+            if board[x][y] == 'O':
+                return False
+            y-=1
+    if direction == 1:
+        while y < n:
+            if board[x][y] == 'S':
+                return True
+            if board[x][y] == 'O':
+                return False
+            y+=1
+    if direction == 2:
+        while x >= 0:
+            if board[x][y] == 'S':
+                return True
+            if board[x][y] == 'O':
+                return False
+            x-=1
+    if direction == 3:
+        while x < n:
+            if board[x][y] == 'S':
+                return True
+            if board[x][y] == 'O':
+                return False
+            x+=1
+    return False
+
+def process():                  #선생님위치를 하나씩 각자가져오면서 시야를 확인함
+    for x,y, in teachers:
+        for i in range(4):
+            if watch(x,y,i):
+                return True
+    return False
+
+find = False                    #일단은 발견된다는것을 디폴트값으로 설정
+
+for data in combinations(spaces,3):
+    for x,y in data:
+        board[x][y] = 'O'       #조합에 따라 장애물을 설치하고
+    if not process():
+        find = True             #탐색과정을 수행했을때 발각되지 않는다면 true로 전환하고 거기서 탐색종료
+        break
+    for x,y in data:            #설치한 장애물을 다시 제거하는 과정을 통해 데이터사용량 절약
+        board[x][y] = 'X'
+
+if find:
+    print('YES')
+else:
+    print('NO')
+'''
+
+#Q21
+
+#음료수얼리기 응용! dfs를 이용해서 덩어리를 형성하고, 덩어리내의 각 좌표에 해당하는 값을 전부 더한뒤 연합한 좌표 갯수로 나눠서 다시 배분한다.
+
+'''#timeover -> 여러개의 유니온일때와, 인구 분배후 인구이동이 다시가능한것을 구현하지못함
+n,L,R = map(int,input().split())
+array = []
+for _ in range(n):
+    array.append(list(map(int,input().split())))
+
+#상하좌우 순서로 검사
+dx = [-1,1,0,0]
+dy = [0,0,-1,1]
+
+visited = []
+
+def union_nation(x,y):
+    if x<0 or x>=n or y<0 or y>=n or (x,y) in visited :
+        return False
+    
+    visited.append((x,y))
+    for i in range(4):
+        nx = x + dx[i]
+        ny = y + dy[i]
+        if 0<= nx <n and 0<=ny<n and L<=abs(array[x][y] - array[nx][ny])<=R and (nx,ny) not in visited:        
+                    #다음으로 이동할 위치가 범위내에 있으면서, 방문하지 않았으며, 현재위치의 인구수와 그 차이값이 LR범주내라면
+            print((nx,ny))
+            visited.append((nx,ny))                 #다음이동할 위치를 방문처리하고
+            union_nation(nx,ny)                     #다시 재귀화 한다
+    return visited
+
+
+count=0
+while union_nation(0,0):                       #연합이 있다면 아래의 내용을 수행한다.
+    union_elements = []
+    union_elements.append(union_nation(0,0))
+                                            #연합을 형성한다 ex [[(0,1),(0,2)], [(1,0),(1,1),(1,2) ] 꼴
+    while union_elements.count(False):
+        union_elements.remove(False)
+
+    for union in union_elements:            #여러연합중 한 연합을 가져옴
+        total = 0
+        for x,y in union:                   #가져온 연합내의 나라의 인구수를 다 더함
+            total += array[x][y]
+
+        for x,y in union:                   #더한 총 인구수를 연합내 나라 갯수로 나누고, 그것을 연합내 각 나라에 분배함
+            array[x][y] = total // len(union)
+    print(array)
+    count+=1
+
+print(count)
+'''
+
+'''#해답. bfs사용해서 풀었음. union이라는 nxn행렬을 하나더만들고 전부 -1로 초기화 시킨후, 0부터시작해서 n^2 -1 번까지 돌고, 마지막으로 n^2+1번째를 진입하면 while문탈출
+#그리고 중간에 조건에 따라 인구이동이 가능해지면, 그 연합국은 동일 union좌표에 같은 index번호를 가지게해서 구별하게끔했음.
+from collections import deque
+
+n,l,r = map(int,input().split())
+graph = []
+for _ in range(n):
+    graph.append(list(map(int,input().split())))
+
+dx = [-1,0,1,0]
+dy = [0,-1,0,1]
+
+result = 0
+
+def process(x,y,index):         #나라(x,y)위치와 현재 연합상황을 입력해서 수행
+    united = []
+    united.append((x,y))
+
+    q = deque()
+    q.append((x,y))             #큐에 현재탐색중인 나라의 위치를 입력
+    union[x][y] = index         #연합을 나타내는 행렬(index)에 index수로 무슨연합인지 남김
+    summary = graph[x][y]       #현재 검사중인 국가의 인구수 = 전체인구수화 함
+    count = 1                   #현재연합 국가의수(시작이므로 1)
+
+    while q:
+        x, y = q.popleft()
+        for i in range(4):
+            nx = x + dx[i]
+            ny = y + dy[i]
+
+            if 0<=nx<n and 0<=ny<n and union[nx][ny] == -1 :    #맵내의 인접한 나라가 아직 연합에 속하지 않았을때
+                if l <= abs(graph[nx][ny] - graph[x][y]) <= r:  #인접나라와의 인구차이가 인구이동이 가능할정도라면
+                    q.append((nx,ny))
+
+                    union[nx][ny] = index                       #연합을 나타내는 행렬에 인접한나라를 현재의 연합에 추가하고
+                    summary += graph[nx][ny]                    #전체인구수에 추가되는나라의 인구를 더함
+                    count += 1                                  #연합나라수를 추가
+                    united.append((nx,ny))                      #연합된 나라리스트에 추가
+
+    for i,j in united:
+        graph[i][j] = summary//count        #연합작업이 끝나면 연합국가간에 인구를 분배
+    return count
+
+total_count = 0     #총 수행횟수
+
+while True :
+    union = [[-1] * n for _ in range(n)]            #연합index를 나타내는 nxn행렬을 하나더 생성하고 전부 -1로 초기화함
+    index = 0
+    for i in range(n):
+        for j in range(n):
+            if union[i][j] == -1:                   #연합indx행렬을 순차적으로 -1인것을 하나씩 가져와서 연합처리를 수행하고, 
+                print(index)
+                process(i,j,index)                  #연합처리가 끝나면 다음 연합번호로 넘어감.
+                index += 1                          #이때 인덱스는 같은 연합이라면 +되지않고 process함수에 의해 모두 돌아서 union에 같은 index 숫자를먹여버리므로 index가 변화하지않고 처음 연합을 시작한 index 숫자로 뒤집어 씌워짐
+    print(graph)
+    print(union)
+    if index == n*n:        #각각이 연합될일이없어서 index가 0부터 n-1까지 싹다돌고 n이 되었을때 while문을 탈출한다.
+        break
+    total_count+=1          #인구이동 한사이클을 전부 수행하면 횟수를 +1한다
+
+print(total_count)
+'''
