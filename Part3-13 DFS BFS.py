@@ -787,3 +787,226 @@ while True :
 
 print(total_count)
 '''
+
+#Q22 블록 이동하기
+'''
+무조건 (1,1)(1,2)에 있기때문에, 위치숫자를 +하는 방법으로 나아가야함
+
+로봇의 가로세로 구분은 x값의 차이가 0이면 가로, 1이면 세로로 판별가능
+
+8가지 로봇이 움직이는것을 각각 구현하고, 움직임을 bfs로 돌려보자
+
+움직임 구현끝
+
+'''
+
+
+'''
+def robot_shape():
+    global robot
+    return abs(robot[0][0] - robot[1][0])     #0이면 수평, 1이면 수직이다.
+
+def move_r():
+    global robot
+    if robot[1][1]+1 < n:       #오른쪽 로봇칸의 오른쪽에 맵이 남아있으며
+        if robot_shape() == 0 and board[robot[1][0]][robot[1][1]+1] == 0: #로봇이 수평이고 로봇의 오른쪽칸이 빈칸이면
+            robot[0][1]+=1
+            robot[1][1]+=1
+    return False
+
+def move_l():
+    global robot
+    if robot[0][1]-1 >= 0:       #왼쪽 로봇칸의 왼쪽에 맵이 남아있으며
+        if robot_shape() == 0 and board[robot[0][0]][robot[0][1]-1] == 0: #로봇이 수평이고 로봇의 왼쪽칸이 빈칸이면
+            robot[0][1]-=1
+            robot[1][1]-=1
+    return False
+
+def turn_r_r90(): #오른쪽 중심으로 시계반대방향 90도 전환
+    global robot
+    if robot[0][0]+1 < n and robot[1][0]+1 < n and robot_shape() == 0 : #로봇의 아래 두칸이 존재하며 수평
+        if board[robot[0][0]+1][robot[0][1]] == 0 and board[robot[1][0]+1][robot[1][1]] == 0: #아래두칸이 전부 빈칸일경우
+            robot[0][0] = robot[1][0]
+            robot[0][1] = robot[1][1]       #로봇의 첫번째 칸을 윗칸으로 하고
+            robot[1][0] = robot[1][0]+1
+            robot[1][1] = robot[1][1]       #두번째 칸을 아랫칸으로 한다.
+    return False
+
+def turn_r_90(): #오른쪽 중심으로 시계방향 90도 전환
+    global robot
+    if robot[0][0]-1 >= 0 and robot[1][0]-1 >= 0 and robot_shape() == 0 : #로봇의 위 두칸이 존재하며
+        if board[robot[0][0]-1][robot[0][1]] == 0 and board[robot[1][0]-1][robot[1][1]] == 0: #위두칸이 전부 빈칸일경우
+            robot[0][0] = robot[1][0]-1
+            robot[0][1] = robot[1][1]       #로봇의 첫번째 칸을 윗칸으로 하고
+            robot[1][0] = robot[1][0]
+            robot[1][1] = robot[1][1]       #두번째 칸을 아랫칸으로 한다.
+    return False
+
+def turn_l_90(): #왼쪽 중심으로 시계방향 90도 전환
+    global robot
+    if robot[0][0]+1 < n and robot[1][0]+1 < n and robot_shape() == 0 : #로봇의 아래 두칸이 존재하며
+        if board[robot[0][0]+1][robot[0][1]] == 0 and board[robot[1][0]+1][robot[1][1]] == 0: #아래두칸이 전부 빈칸일경우
+            robot[0][0] = robot[0][0]
+            robot[0][1] = robot[0][1]       #로봇의 첫번째 칸을 윗칸으로 하고
+            robot[1][0] = robot[0][0]+1
+            robot[1][1] = robot[0][1]       #두번째 칸을 아랫칸으로 한다.
+    return False
+
+def turn_l_r90(): #왼쪽 중심으로 시계반대방향 90도 전환
+    global robot
+    if robot[0][0]-1 >= 0 and robot[1][0]-1 >= 0 and robot_shape() == 0 : #로봇의 위 두칸이 존재하며
+        if board[robot[0][0]-1][robot[0][1]] == 0 and board[robot[1][0]-1][robot[1][1]] == 0: #위두칸이 전부 빈칸일경우
+            robot[0][0] = robot[0][0]-1
+            robot[0][1] = robot[0][1]       #로봇의 첫번째 칸을 윗칸으로 하고
+            robot[1][0] = robot[0][0]+1
+            robot[1][1] = robot[0][1]       #두번째 칸을 아랫칸으로 한다.
+    return False
+
+def move_u():
+    global robot
+    if robot[0][0]-1 >= 0:       #위쪽 로봇칸의 아래에 맵이 남아있으며
+        if robot_shape() == 1 and board[robot[0][0]-1][robot[0][1]] == 0: #로봇이 수직이고 로봇의 위쪽칸이 빈칸이면
+            robot[0][0]-=1
+            robot[1][0]-=1
+    return False
+
+def move_d():
+    global robot
+    if robot[1][0]+1 < n:       #아래쪽 로봇칸의 아래에 맵이 남아있으며
+        if robot_shape() == 1 and board[robot[1][0]-1][robot[1][1]] == 0: #로봇이 수직이고 로봇의 아랫칸이 빈칸이면
+            robot[0][0]+=1
+            robot[1][0]+=1
+    return False
+
+def turn_u_90(): #위쪽 중심으로 시계방향 90도 전환
+    global robot
+    if robot[0][1]-1 >= 0 and robot[1][1]-1 >= 0 and robot_shape() == 1: #로봇의 왼쪽 두칸이 존재하며 수직
+        if board[robot[0][0]][robot[0][1]-1] == 0 and board[robot[1][0]][robot[1][1]-1] == 0: #완쪽두칸이 전부 빈칸일경우
+            robot[1][0] = robot[0][0]
+            robot[1][1] = robot[0][1]     #위블록을 뒤로
+            robot[0][0] = robot[1][0]
+            robot[0][1] = robot[1][1]-1   #밑블록을 앞으로
+    return False
+
+def turn_u_r90(): #위쪽 중심으로 시계반대방향 90도 전환
+    global robot
+    if robot[0][1]+1 < n and robot[1][1]+1 < n and robot_shape() == 1: #로봇의 오른쪽 두칸이 존재하며
+        if board[robot[0][0]][robot[0][1]+1] == 0 and board[robot[1][0]][robot[1][1]+1] == 0: #오른쪽두칸이 전부 빈칸일경우
+            robot[0][0] = robot[0][0]
+            robot[0][1] = robot[0][1]
+            robot[1][0] = robot[0][0]
+            robot[1][1] = robot[0][1]+1
+    return False
+
+def turn_d_90(): #아래 중심으로 시계방향 90도 전환
+    global robot
+    if robot[0][0]+1 < n and robot[1][0]+1 < n and robot_shape() == 1: #로봇의 오른쪽 두칸이 존재하며
+        if board[robot[0][0]][robot[0][1]+1] == 0 and board[robot[1][0]][robot[1][1]+1] == 0: #오른쪽두칸이 전부 빈칸일경우
+            robot[0][0] = robot[1][0]
+            robot[0][1] = robot[1][1]
+            robot[1][0] = robot[0][0]
+            robot[1][1] = robot[0][1]+1
+    return False
+
+def turn_d_r90(): #아래 중심으로 시계반대방향 90도 전환
+    global robot
+    if robot[0][1]-1 >= 0 and robot[1][1]-1 >= 0 and robot_shape() == 1: #로봇의 왼쪽 두칸이 존재하며 수직
+        if board[robot[0][0]][robot[0][1]-1] == 0 and board[robot[1][0]][robot[1][1]-1] == 0: #완쪽두칸이 전부 빈칸일경우
+            robot[1][0] = robot[1][0]
+            robot[1][1] = robot[1][1]     #밑블록이 뒤가되고
+            robot[0][0] = robot[1][0]
+            robot[0][1] = robot[1][1]-1   #위블록이 앞이됨
+    return False
+
+
+
+board = [
+    [0,0,0,0,0],
+    [0,0,0,1,0],
+    [0,0,0,1,1],
+    [1,1,0,0,1],
+    [0,0,0,0,0]
+    ]
+
+n = len(board)
+robot = [[0,0],[0,1]]
+
+from collections import deque
+
+count=0
+
+while [n,n] not in robot:
+    move_r()
+    count+=1
+    if not move_r():
+        turn()
+        if not turn():
+
+
+'''
+
+from collections import deque
+
+def get_next_pos(pos, board):
+    next_pos = []
+    pos = list(pos)
+    pos1_x, pos1_y, pos2_x, pos2_y = pos[0][0], pos[0][1], pos[1][0], pos[1][1] #보기좋게 값을 배정
+
+    #상하좌우
+    dx = [-1,1,0,0]
+    dy = [0,0,-1,1]
+    for i in range(4):
+        pos1_next_x, pos1_next_y, pos2_next_x, pos2_next_y = pos1_x + dx[i], pos1_y + dy[i], pos2_x + dx[i], pos2_y + dy[i]
+
+        if board[pos1_next_x][pos1_next_y] == 0 and board[pos2_next_x][pos2_next_y] == 0:
+                next_pos.append({(pos1_next_x,pos1_next_y), (pos2_next_x,pos2_next_y)})
+    
+    if pos1_x == pos2_x:        #수평일경우
+        for i in [-1,1]:            # 위쪽으로/아래쪽으로
+            if board[pos1_x+i][pos1_y] == 0 and board[pos2_x+i][pos2_y] == 0:   #위쪽/아래쪽 두칸이 각각 비어있을경우
+                next_pos.append({(pos1_x,pos1_y), (pos1_x+i,pos1_y)})
+                next_pos.append({(pos2_x,pos2_y), (pos2_x+i,pos2_y)})
+    elif pos1_y == pos2_y:      #수직일경우
+        for i in [-1,1]:            #왼쪽회전/오른쪽회전
+            if board[pos1_x][pos1_y+i] == 0 and board[pos2_x][pos2_y+i] == 0:   #왼쪽/오른쪽 두칸이 각각 비어있을경우
+                next_pos.append({(pos1_x,pos1_y), (pos1_x,pos1_y+i)})
+                next_pos.append({(pos2_x,pos2_y), (pos2_x,pos2_y+i)})
+    return next_pos
+
+def solution(board):
+    n = len(board)
+    new_board = [[1] * (n+2) for _ in range(n+2)]           #가로세로가 한칸씩 늘어난 맵을 만들고(모두 벽으로 초기화)
+    for i in range(n):
+        for j in range(n):
+            new_board[i+1][j+1] = board[i][j]               #원래의 맵을 다시 입력
+
+    
+    q = deque()
+    visited = []
+    pos = {(1,1), (1,2)}            #set 형을 사용해서 로봇의 앞뒤 순서를 구별할 필요가 없게끔 했음(이거 사용못하면 로봇앞/뒤 or 위/아래 구분해서 구현해야함 -> 개길어짐 -> 개 비효율적)
+    q.append((pos,0))
+    visited.append(pos)
+
+    while q:
+        pos, cost = q.popleft()
+        
+        if (n,n) in pos:
+            return cost
+        
+        for next_pos in get_next_pos(pos, new_board):
+            if next_pos not in visited:
+                q.append((next_pos, cost+1))
+                visited.append(next_pos)
+    return 0
+
+
+board = [
+    [0,0,0,1,0],
+    [0,0,0,1,0],
+    [0,1,0,1,1],
+    [1,1,0,0,1],
+    [0,0,0,0,0]
+    ]
+
+
+print(solution(board))
