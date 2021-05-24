@@ -199,3 +199,110 @@ def solution(N,stages):
     answer = [i[0] for i in answer]
     return answer
 '''
+
+#Q26 카드 정렬하기
+'''
+10,20,30,40을 정렬한다고하면
+
+    10+20
+    +
+    10+20+30
+    +
+    10+20+30+40
+->이런식의 총합이 최소값이 되므로, 오름차순정렬후, 앞부터 순차적으로 더하게하는것이 최소값
+
+다만 dp적 사고를 접목해서 재귀화 구현할때, 계산한 데이터를 저장시키고, 이것을 다음계산시에 쓰게해서 시간및 메모리복잡도를 낮춰야함
+'''
+
+#내답 -> 틀렸음 앞에서 순차적으로 더하는것만 생각하면 순차적으로 더한값이 그 뒤에있는 원소간 합보다 큰경우를 피할 수 없음.
+#Ex) 10 20 21 22 일때, 내답은 154지만 이상적인 조합은 30+43+73으로 146이어야함
+#차라리 데이터리스트에서 최소값을 빼내고 뺴낸 위치에 inf를 대체, 다음 최소값을 빼내고 inf를 대체하고 빼낸 두값을 더한다음에 데이터 리스트에 추가하고
+#이를 재귀적으로 반복하는것이 더 나았을듯
+
+'''
+n = int(input())
+data = []
+for _ in range(n):
+    data.append(int(input()))
+
+data.sort()                             #n = 10만일때 -> 50만 사용
+
+sum_data = [0] * (n-1) 
+
+def cal(n):
+    if n == 1:
+        return data[0]
+    
+    if n == 2:
+        return data[0] + data[1]
+    
+    sum_data[0] = data[0] + data[1] 
+    for i in range(3,n+1):                              #n = 10만일때 -> 10만 사용 , total 60만사용
+        sum_data[i-2] = sum_data[i-3] + data[i-1]
+
+    return sum(sum_data)
+
+print(cal(n))
+'''
+
+''' 이방법을 써도 min / index 과정에서 O(N)을 두번이나 사용하므로 오히려 pop보다 효율이 안좋아지므로 그만둔다
+n = int(input())
+data = []
+for _ in range(n):
+    data.append(int(input()))
+
+n = 4
+data = [10,20,40,50]
+
+INF = 1e9
+
+def pop_min_value(data):        #data 리스트내에서 최소값을 가져오고, 그 자리에 INF값을 대체한다. 1회연산시 최대 20만
+    a = min(data)
+    a_index = data.index(a)
+    data[a_index] = INF
+    return a
+
+print(data)
+
+record = []
+
+#최대 10만번 for문연산
+for _ in range(n-1) :         #data내에 INF 갯수가 n+1개가 될때까지 수행. ex)원소 3개일때 모든연산후 data = [inf,inf,inf,inf,val]상태
+    a = pop_min_value(data) + pop_min_value(data)  #20만 + 20만 = 40만
+    data.append(a)
+    record.append(a)
+    print(data)
+
+print(sum(record))
+'''
+
+
+'''#해설 뒤에있는 원소간 합이 순차적 합보다 작은 경우를 비교해서 항상 최소값끼리 선택해서 더하도록 함 -> heapq로 구현함(최소값을 찾는데 걸리는 시간은 logN 보장)
+
+# + 최대/최소값을 항상 빼와야할때는 힙큐 방식이 제일좋고, 그외의 n번째 값같은 극값이 아닌 다른 정렬상태의 값을 필요로한다면 tree구조가 좋다.
+# 힙큐방식은 구조 트리를 모두 정렬해놓지않는다! 최대or최소값만 관심이 있기 때문에, 그 값만 도출시켜놓고 나머지 값은 흐트러져있는 상태임.
+# 그렇기때문에 최소/최대 값을 빼내고, 새로운 최대/최소값을 올려야할때마다 logN회의 부모-자식노드간 교환작업을 통해 최대/최소값을 얻는다
+
+import heapq
+
+n = int(input())
+
+heap = []
+for i in range(n):
+    data = int(input())
+    heapq.heappush(heap,data)   #힙 리스트에 힙큐자료구조로써 모든데이터를 입력한다
+
+result = 0
+
+while len(heap) != 1:                   #카드뭉치가 모두 합쳐질때까지 연산수행
+    first = heapq.heappop(heap)         #최소값을 first에,
+    second = heapq.heappop(heap)        #그다음 최소값을 second에 heapq 구조를 이용해서 할당하고
+
+    sum_value = first + second
+    result += sum_value
+    heapq.heappush(heap, sum_value)     #힙큐 자료구조에 최소값을 더한 값을 다시 집어넣는다
+
+print(result)
+'''
+
+
