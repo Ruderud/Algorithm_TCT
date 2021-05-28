@@ -236,3 +236,85 @@ while (start<=end) :        #[start,end]를 조일수있는 여지가 있으면 
 
 print(result)
 '''
+
+#30 가사 검색 
+# + re 라이브러리호출, -> re.match(검색할 문자열, 피검색 문자열리스트) 검색해서 해당하는 문자열을 리스트로 반환시킬 수 있음. 이때, "."문자는 와일드카드로 인식가능
+
+words = ["frodo", "front", "frost", "frozen", "frame", "kakao"]
+queries = ["fro??", "????o", "fr???", "fro???", "pro?"]
+
+from bisect import bisect_left, bisect_right
+import re
+
+def same_lenword_index(words,word_len):     #검색할 단어와 같은길이의 단어들이 나오는 첫번째 인덱스~마지막인덱스를 알려준다
+    left = bisect_left(words,word_len)
+    right = bisect_right(words,word_len)
+    return (left,right-1)
+
+def words_lenglist(words):
+    words_len = []
+    for i in words:
+        words_len.append(len(i))
+    return words_len
+
+def check(words,start,end,query):           #가져온 query의 ?->. 변환후, re라이브러리를 사용해서 변환한 쿼리문자에서 .을 와일드카드로하는 word의 index 범위내에서 일치하는 갯수를 찾음
+    dot_query = query.replace('?', '.')
+    match_list = [ match_word for match_word in words[start:end+1] if re.match(dot_query, match_word)]
+    return len(match_list)
+
+def solution(words, queries):
+    answer = []
+
+    words.sort(key = lambda x : len(x))     #단어를 길이우선 -> 알파벳 순으로 정렬함
+    words_len = words_lenglist(words)
+
+    for query in queries:
+        (start,end) = same_lenword_index(words_len,len(query))      #쿼리문자를 검색할 인덱스 범위를 이진검색을 통해서 효율적으로 줄여줌
+        
+        if end == -1:           #만약 해당길이의 문자열자체가 없다면 0을 반환 (검색할게없으면 index 묶음이 (0,-1)로 출력되게 되어있음)
+            answer.append(0)
+        else :
+            count = check(words,start,end,query)
+            answer.append(count)
+            #search_width를 이용해서 정렬된 words index의 요소들을 가져와서 검사하고, 해당하는 수를 순차적으로 answer에 append함
+    return answer
+
+print(solution(words, queries))
+
+
+#해설
+#기본적으로 ?하나를 a~z알파벳 하나씩 배정해서 이진검색을 각각 돌리는 방법을 사용했음. ??라면 aa~zz까지 이런식. 그래서 fr???라면 fraaa~frzzz를 하나씩 이진검색했다는 의미
+#이때 문자열 맨앞에 ?가 오는경우는 연속으로 덩어리져있기 때문에 이러한 선형처리방법이 빠르게 진행가능함
+#단, 이떄 맨앞에 ?가 오고 뒤에 고정문자가 있는경우에는 온전한 선형이 아닌, 끊어지는 구간이 생겨서 문제가 발생한다. 
+#이때는 문자열을 뒤집어서, 뒤에있는 고정문자열이 앞으로 오게해서 검색하면 위의 검색방법을 유효하게 사용할 수 있다.
+from bisect import bisect_left,bisect_right
+
+def c_b_r(a,l_val,r_val):
+    r_index = bisect_right(a,r_val)
+    l_index = bisect_left(a,l_val)
+    return r_index - l_index
+
+array = [[] for _ in range(10001)]  #단어길이 1~10000까지있으므로 10001개의 리스트를 만들어서 단어를 해당 index배열에 집어넣음
+
+reversed_array = [[] for _ in range(10001)]     #뒤집을 문자열이 들어갈 공간
+
+def solution_A(words, queries):
+    answer = []
+    for word in words:
+        array[len(word)].append(word)
+        reversed_array[len(word)].append(word[::-1])        #원래문자/뒤집은문자를 각각 길에 맟는 리스트에 정리해서 집어넣음
+    
+    for i in range(10001):
+        array[i].sort()
+        reversed_array[i].sort()                            #각각의 문자열을 알파벳 오름차순 (a~z)으로 정렬
+
+    for q in queries:
+        if q[0] != '?':
+            res = c_b_r(array[len(q)], q.replace('?','a'), q.replace('?','z'))      #쿼리 첫글자가 와일드카드가 아닌경우(fr???)-> 길이 5개인 리스트에서 fraaa ~ frzzz사이에있는 문자열 갯수를 구함
+        else:
+            res = c_b_r(reversed_array[len(q)], q[::-1].replace('?','a'), q[::-1].replace('?','z')) #쿼리첫글자에 와일드카드가 오는경우 위의 계산을 리버스문자열에 대해서 수행함
+    
+        answer.append(res)
+    return answer
+
+print(solution_A(words, queries))
