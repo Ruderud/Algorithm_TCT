@@ -203,7 +203,7 @@ work(date,total)
 print(max(result), result)
 '''
 
-#해답-이게뭔소리지? 다시봐야겠닼
+"""#해답
 '''
 dp[i] = max(p[i]+dp[t[i]+i], max_value) = i번째 날부터 마지막날까지 낼 수 있는 최대 이익
 
@@ -255,3 +255,94 @@ for i in range(n-1,-1,-1):      #뒤에서부터 거꾸로확인, n=7일때 6,5,
 
 
 print(max_value)
+"""
+
+#Q34 병사배치하기
+'''
+하향구간을 박스화해서 다음박스의 최대값을 기준으로하여, 현재박스에서 해당값 이하의 갯수(a)와 다음박스의 갯수(b)를 비교해서 현재박스에 추가하는 방식으로 반복
+
+'''
+
+'''#내답
+n = int(input())
+array = list(map(int,input().split()))
+boxes = []
+start=0
+
+def compare_count(box, compare_value):
+    count = 0
+    for i in box:
+        if i < compare_value:
+            count+=1
+    return count
+
+for i in range(len(array)):
+
+    if i+1 < n and array[i] < array[i+1] :
+        boxes.append(array[start:i+1])
+        start += i+1
+
+    if i == n-1:
+        if min(boxes[-1]) < array[i]:
+            boxes.append([array[i]])
+        else:
+            boxes[-1].append(array[i])
+
+main_box = boxes[0]
+
+for box in boxes[1:]:
+    compare_value = box[0]
+    a = compare_count(main_box, compare_value)
+    b = len(box)
+
+    if a < b :                                  #뒷박스길이가 더길어서 가져다 붙이는게 좋을떄
+        del main_box[-a:]
+        main_box = main_box + box
+    elif a > b:                                 #뒷박스길이가 더 짧아서 현재박스보다 작은값들만 붙이는게 좋을때
+        c = compare_count(box, min(main_box))
+        del box[-c:]
+    else:                                       #뒷박스길이와 현재박스 비교박스길이가 같을떄
+        if min(box) < min(main_box):                #현재박스의 비교박스최소값이 더 클때는 지금을 유지
+            continue
+        elif min(box) > min(main_box):              #뒷박스의 최소값이 더 클때는 해당 비교구간을 뒷박스로 바꿈
+            del main_box[-a:]
+            main_box = main_box + box
+        else:                                       #양쪽의 비교한 박스의 최소값이 같을때는 뒷박스의 최소값을 뒤에 붙여서 길이를 늘림
+            main_box.append(min(box))
+
+print(boxes)
+print(main_box)
+print(n - len(main_box))
+'''
+
+#해답
+"""
+가장긴 증가하는 부분 수열유형문제
+
+사용한 점화식은 D[i] = max(D[i], D[j]+1) if array[j] < array[i] 이다
+        (D는 주어진 배열i번째값을 마지막으로하는배열의 길이 최대값)
+ex array = [10,20,10,30,20,50]일때
+    [1,1,1,1,1,1]
+    [1,2,1,1,1,1]
+    [1,2,1,1,1,1]
+    [1,2,1,3,1,1] -> i=3에대해 처리한다. 이때 array[3]=30을 끝값으로하는 최대값은 10 20 (10->제거) 30 이라 10 20 30인 3개가 된다.
+    [1,2,1,3,2,1]
+    [1,2,1,3,2,4] ->
+즉, 주어진배열에서 순차적으로 값을 집어넣었을때 이전최대값보다 큰값이라, 더 길이가 늘어날수있는지 주어진 배열의 index에 대해서 하나씩 확인하면된다
+
+=> 이러한 개념을 문제에서 반대로 적용하면된다.(가장)
++ 슬라이싱해서 비교할때, 검사중인 값과 동일한 level이라면 해당 검사중인 값도 배열에 추가해서 길게해야 최소한의 배출병사를 계산가능
+"""
+n = int(input())
+array = list(map(int,input().split()))
+
+array.reverse()                         #주어진 배열을 뒤집어서, 오름차순으로 가장 긴 배열을 가지게끔 만들어보면된다
+dp = [1] * n                            #해당 인덱스위치값을 배열의 끝으로하는 최대길이를 저장할 배열
+
+for i in range(1,n):                    #비교할대상은 index기준 1번부터 n번까지이다.
+    for j in range(0,i):                #각 최대 비교값을 i위치로하는 array앞에서부터의 배열을 슬라이싱
+        if array[j] <= array[i]:        #슬라이싱한것을 앞부터 순차적으로 검사할때 검사값이 끝값보다 작거나 같으면 
+            dp[i] = max(dp[i], dp[j]+1)         # 검사를 위해 슬라이싱한 맨 끝값의 dp vs 현재 검사중인 위치에 대한dp +1 해서 큰값을 해당 dp[i]에 저장
+
+print(n-max(dp))                        #n에서 가장 긴배열의 길이만큼 뺴면, 이것이 최소한으로 뺴야할 병사의 수가 된다.
+
