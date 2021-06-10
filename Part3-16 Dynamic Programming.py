@@ -423,3 +423,70 @@ for l in range(1,n):
 
 print(ugly[n-1])
 '''
+
+#Q36 편집거리
+
+
+'''#내답
+a = str(input())
+b = str(input())
+
+len_a = len(a)
+len_b = len(b)
+
+frame_a, frame_b = [0] * len_b, [0] * len_b
+
+for i in range(len_b):
+    frame_b[i] = b[i]
+
+index = 0
+for i in range(len_a):
+    for j in range(index,len_b):
+        #만일 a의 프레임이 비어있고, 해당위치의 알파벳이 a의 i번째 알파뱃과 같으며, 이때 집어넣는다.
+        if frame_a[j] == 0 and a[i] == frame_b[j]:
+            frame_a[j] = a[i]
+            index = j+1     #문자의 집어넣는 순서가 뒤바뀌지않게 처음 검사하는 위치를 조정
+            break
+
+print(frame_a.count(0))
+'''
+
+'''#해답
+#2차원 dp 테이블을 만들고, 좌상->우하 방향으로 "결과값"의 의미를 담은 계산을 수행
+# 1. 교차점에서 서로 문자가 같을때 = 좌상단값을 그대로 가져옴 (a문자의 해당 위치의 알파벳을 그대로 살림)
+# 2. 교차점에서 서로 문자가 다를때
+# 2-1. 좌상단->교차점 = 위치알파벳을 그대로 가져오되, +1하여 b의 해당위치 알파벳으로의 변환
+# 2-2. 좌측->교차점 = +1 새로운 알파벳을 추가로 삽입
+# 2-3. 상단->교차점 = +1 해당위치 알파벳을 지우는 작업
+# 위의 dp[i][j] = if 같을때는 dp[i-1][j-1], else는 min(dp[i][j-1](=삽입), dp[i-1][j](=삭제), dp[i-1][j-1](=변환)) +1(작업) 으로 수행
+
+def edit_dist(str1, str2):
+    n = len(str1)
+    m = len(str2)
+
+    dp = [[0] * (m+1) for _ in range(n+1)] #세로축이 a, 가로축이 b의 문자열길이 각각의 +1한 2차원 dp테이블 생성
+
+    for i in range(1,n+1):
+        dp[i][0] = i
+    for j in range(1,m+1):
+        dp[0][j] = j
+
+    for i in range(1, n+1):
+        for j in range(1, m+1):
+
+            if str1[i-1] == str2[j-1]: #교차점 문자가 같을때
+                dp[i][j] = dp[i-1][j-1]
+            
+            else:
+                dp[i][j] = 1 + min(dp[i][j-1], dp[i-1][j], dp[i-1][j-1])
+    
+    return dp[n][m]
+
+str1 = input()
+str2 = input()
+
+print(edit_dist(str1, str2))
+'''
+
+
+
