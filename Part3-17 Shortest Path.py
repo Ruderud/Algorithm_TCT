@@ -1,6 +1,6 @@
 #37 플로이드
 
-#해설
+'''#해설
 
 INF = 1e9
 
@@ -31,5 +31,72 @@ for a in range(1,n+1):
         else:
             print(graph[a][b], end=' ')
     print()
+'''
 
 
+#38 정확한 순위
+#대상 노드 i에 대해, 나머지 n-1개의 노드가 i노드까지 가는데 걸리는 거리값이 모두 INF가 아니라면, 해당 노드는 확정순위를 가지는 사람이다.
+
+'''#내답: 시간 = 1만 + 1.25억 이하 + 2500만 + 500 = 1.5억(시간초과)? 
+n, m = map(int,input().split())
+
+array = [[0] * (n+1) for _ in range(n+1)]
+
+for _ in range(m):
+    a,b = map(int,input().split())
+    array[a][b] = 1
+
+for a in range(1,n+1):
+    for b in range(1,n+1):
+        if a == b:                  #자기자신으로 향하는것은 제외
+            continue
+        if array[a][b] != 0:
+            for i in range(1,n+1):  #다른노드로 넘어갈수있는것들만 for문을 돌리는거기때문에 1.25억보다 적긴할텐데 얼마나 적어질지는 모르겠음
+                if array[b][i] != 0:
+                    array[a][i] = array[a][b] + array[b][i]
+
+for x in range(1,n+1):              #교차점은 x표시
+    array[x][x] = 'x'
+    for y in range(1,n+1):          #대칭형으로 만들어주기
+        array[x][y] = max(array[x][y], array[y][x])
+
+count=0
+for x in range(1,n+1):
+    if 0 not in array[x][1:]:
+        count+=1
+
+print(count)
+'''
+
+'''#해설
+INF = int(1e9)
+
+n,m = map(int,input().split())
+graph = [[INF] * (n+1) for _ in range(n+1)]
+
+for a in range(1,n+1):
+    for b in range(1,n+1):
+        if a==b:
+            graph[a][b] = 0
+
+for _ in range(m):
+    a,b = map(int, input().split())
+    graph[a][b] = 1                         #여기까진 똑같음
+
+for k in range(1,n+1):
+    for a in range(1,n+1):
+        for b in range(1,n+1):
+            graph[a][b] = min(graph[a][b], graph[a][k]+graph[k][b])
+
+result = 0
+
+for i in range(1,n+1):
+    count = 0
+    for j in range(1,n+1):
+        if graph[i][j] != INF or graph[j][i] != INF:        #그래프에서 (i,i)를 교차중심으로 하는 십자 항목들에 대한 검사 실행 -> [i][j] [j][i]둘중 하나라도 도달가능한 값이 존재시 정확한 순서가 정해짐
+            count += 1
+    if count == n:
+        result+=1
+
+print(result)
+'''
