@@ -100,3 +100,73 @@ for i in range(1,n+1):
 
 print(result)
 '''
+
+
+#39 화성탐사 
+
+
+
+
+
+
+
+#40 숨바꼭질
+'''#플로이드 워셜 문제 (x) 이렇게하면 n = 20000이라서 시간제한에 걸림... -> 다익스트라를 써야함
+
+import heapq
+from sys import maxsize
+
+INF = int(1e9)
+n,m = map(int,input().split())
+start = 1
+graph = [[] for _ in range(n+1)]
+distance = [INF] * (n+1)
+
+for _ in range(m):
+    a,b = map(int,input().split())
+    graph[a].append((b,1))
+    graph[b].append((a,1))
+
+def dijkstra_rv(start):
+    q=[]
+
+    heapq.heappush(q,(0,start))
+    distance[start] = 0
+    while q:
+        dist, now = heapq.heappop(q)
+        
+        if distance[now] < dist:
+            continue
+
+        for i in graph[now]:
+            cost = dist + i[1] 
+            if cost < distance[i[0]]:
+                distance[i[0]] = cost
+                heapq.heappush(q,(cost,i[0]))
+
+dijkstra_rv(start)
+
+# del distance[0]
+# distance_max = max(distance)
+# recommend_index = distance.index(distance_max)
+# others = distance.count(distance_max)
+# print(recommend_index+1, distance_max, others)
+
+
+#해답: 다익스트라를 푸는 과정은 똑같음. 마지막 결과 출력이 쪼금더 효율적
+
+#다익스트라 로직은 동일
+max_dist = 0
+max_node = 0
+result = []
+
+for i in range(1,n+1):
+    if max_dist < distance[i]:
+        max_node = i
+        max_dist = distance[i]
+        result = [max_node]
+    elif max_dist == distance[i]:
+        result.append(i)
+
+print(max_node, max_dist, len(result))
+'''
