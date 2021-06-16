@@ -103,10 +103,51 @@ print(result)
 
 
 #39 화성탐사 
+#이거 미로찾기에서 응용해야할거같은데...
 
+#내답
+def simulation(graph,start):
+    x,y = start[0],start[1]
+    visited.append(start)
+    available = []
 
+    if x-1>=0 and [x-1,y] not in visited :
+        available.append((graph[x-1][y],x-1,y))
+    if y-1>=0 and [x,y-1] not in visited :
+        available.append((graph[x][y-1],x,y-1))
+    if x+1<n and [x+1,y] not in visited :
+        available.append((graph[x+1][y],x+1,y))
+    if y+1<n and [x,y+1] not in visited :
+        available.append((graph[x][y+1],x,y+1))
+    
+    available.sort(reverse=True)
 
+    if (graph[n-1][n-1], n-1, n-1) in available:
+        return [n-1,n-1]
+    else:
+        return [available[-1][1],available[-1][2]]
 
+t = int(input())
+result = []
+
+for _ in range(t):
+    n = int(input())
+    graph = []
+    for _ in range(n):
+        graph.append(list(map(int,input().split())))
+
+    start = [0,0]
+    move_log = []
+    visited = []
+
+    while start != [n-1,n-1]:
+        move_log.append(graph[start[0]][start[1]])
+        start = simulation(graph,start)
+
+    result.append(sum(move_log) + graph[n-1][n-1])
+
+for i in result:
+    print(i)
 
 
 
