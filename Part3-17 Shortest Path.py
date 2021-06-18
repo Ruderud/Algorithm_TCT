@@ -103,9 +103,11 @@ print(result)
 
 
 #39 화성탐사 
-#이거 미로찾기에서 응용해야할거같은데...
+#방문했던 위치를 제외한 인접한 노드의 값중 가장 작은값만 선택하면서 이동한다. 
+#이때, 같은값이 있다면, 더 (n-1,n-1)위치와 가까운값을 선택한다.
+#만일 주위에 가장작은값이 1개이상이라면 목적지와 더 가까운 최소값을 선택한다. 
 
-#내답
+'''#내답 - dps적 풀이?
 def simulation(graph,start):
     x,y = start[0],start[1]
     visited.append(start)
@@ -120,12 +122,22 @@ def simulation(graph,start):
     if y+1<n and [x,y+1] not in visited :
         available.append((graph[x][y+1],x,y+1))
     
-    available.sort(reverse=True)
+    available.sort(reverse=True)                    #거리값오름차순정렬
 
-    if (graph[n-1][n-1], n-1, n-1) in available:
+    if (graph[n-1][n-1], n-1, n-1) in available:    #최종목적지에 갈수있게되면 해당 노드를 선택하고 종료
         return [n-1,n-1]
     else:
-        return [available[-1][1],available[-1][2]]
+        if [ node[0] for node in available ].count(available[-1][0]) != 1:  #갈수있는 노드값중 가장작은값인것이 2개이상일때, 최종목적지와 더 가까운값을 선택
+            compare = []
+            for node in available:
+                if node[0] == available[-1][0]:
+                    compare.append( ((n-1) - node[1]) + ((n-1) - node[2]) )
+                else:
+                    compare.append(1e9)
+            select = compare.index(min(compare))
+            return [available[select][1],available[select][2]]
+        else:
+            return [available[-1][1],available[-1][2]]  #주변에 갈수있는 값중 가장 작은값의 노드위치로 이동
 
 t = int(input())
 result = []
@@ -148,6 +160,59 @@ for _ in range(t):
 
 for i in result:
     print(i)
+'''
+
+#해설 - 다익스트라 알고리즘이용. 입력된 배열을 전부 노드화해서 노드의 값을 해당 노드로 아동하는게 필요한 값처럼 처리하여 최단거리 알고리즘 수행
+import heapq
+import sys
+input = sys.stdin.readline  #다중입력값을 가져오기위함
+INF = 1e9
+
+dx = [-1,0,1,0]
+dy = [0,1,0,-1]
+
+for tc in range(int(input())):  #테스트케이스 횟수입력
+    n = int(input())
+
+graph = []
+
+for i in range(n):
+    graph.append(list(map(int, input().split())))
+
+distance = [[INF] * n for _ in range(n)]            #n,n 2차 행렬을 만들어서, 해당노드위치까지 가는데 필요한 최소거리값을 처음에 INF로 초기화해둠
+
+x, y = 0, 0
+
+q = [(graph[x][y],x,y)]
+distance[x][y] = graph[x][y]                        #0,0를 시작위치로하여 q에 할당하며, 동시에 최단거리값 배열에 0,0위치값을 배정
+
+while q:
+    dist, x, y = heapq.heappop(q)                   #q에서 낮은거리값순으로 (dist, x,y)값을 가져온다.
+
+    if distance[x][y] < dist:
+        continue
+
+    for i in range(4):
+        nx = x + dx[i]
+        ny = y + dy[i]
+
+        if nx < 0 or nx >= n or  ny < 0 or ny >= n:
+            continue
+        
+        cost = dist + graph[nx][ny]                 #현재위치에서 갈수있는 노드들을 확인하고, 각각의 노드까지 가는 거리값을 추가함.
+
+        if cost < distance[nx][ny]:                 #이떄, 현재노드에서 인접한 다음 노드로 이동하는값 < 다른노드를 통해서 인접한 다음 노드에 도달하는값일시,
+            distance[nx][ny] = cost                 #다른노드를 통해서가는 값을 cost로 저장하고, heapq에 인접한 다음 노드에 대한 데이터를 추가한다.
+            heapq.heappush(q, (cost, nx, ny))
+    
+print(distance[n-1][n-1])                           #n-1,n-1까지 가는 최소값을 출력
+
+
+
+
+
+
+
 
 
 
