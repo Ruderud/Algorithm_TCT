@@ -113,6 +113,7 @@ print(count)
 #도킹/비도킹 게이트로 구분해서, n번 게이트 도킹시 바로 왼쪽(n-1) 게이트의 그룹으로 합집합연산을 수행해서 묶는다. (n번노드는 항상 갈수있는 가장 큰 번호의 게이트)
 #그렇기에 최종적으로 가상의 0번게이트와 연합되었다 = 더이상 도킹불가능하다 의 의미를 가짐. -> 도킹하려는 비행기의 최종 도달게이트가 0번일시 중단하고 도킹된 비행기 갯수 출력
 
+'''
 def find_parent(parent,x):
     if parent[x] != x:
         parent[x] = find_parent(parent,parent[x])
@@ -148,5 +149,50 @@ for land in gi:
     result+=1
 
 print(result)
+'''
 
 
+#Q43
+#0번 노드부터 순차적으로 노드와 노드를 연결해서 하나의 노드로 만든다.
+#이때 새로 편입할 노드가 그룹에 속하기 위해 사용되는 최소한의 값만 선택해서 추가하고, 이를 min_cost에 합산한다
+#모든 노드가 연결되었을때, 전체 max_cost - min_cost를 결과로 출력 
+# => 크루스칼 알고리즘(산장트리 구현; 최소비용의 사이클 생성확인); O(NlogN)이므로 100만의 시간복잡도
+
+def find_parent(parent,x):
+    if parent[x] != x:
+        parent[x] = find_parent(parent, parent[x])
+    return parent[x]
+
+def union_parent(parent,a,b):
+    a = find_parent(parent,a)
+    b = find_parent(parent,b)
+    if a<b:
+        parent[b] = a
+    else:
+        parent[a] = b
+
+n, m = map(int, input().split())
+roads = []
+parent = [0] * n
+max_cost = 0
+min_cost = 0
+
+for _ in range(m):
+    a = list(map(int,input().split()))
+    roads.append([a[2],a[0],a[1]])         #[비용,노드a,노드b]순으로 전환 저장
+
+for i in range(n):                         #부모노드 자기자신으로 초기화
+    parent[i] = i
+
+roads.sort()                               #비용 오름차순으로 정렬
+
+for road in roads:                         #낮은비용의 길부터 하나씩 순차적으로 가져옴.
+    cost,a,b = road                        #전체비용을 계산하기위해 처음가져온값은 max에넣고, 해당도로의 양쪽 노드의 부모노드가 같은 부모노드를 공유하는지 확인
+    max_cost+=cost
+    if find_parent(parent,a) != find_parent(parent,b):  #만일 부모노드가 서로 달라서 연결해야한다면(전체노드를 순환할수있는 사이클을 생성하기위해서) 두노드를 합하고, 그때의 비용을 최소값에 할당
+        union_parent(parent,a,b)
+        min_cost+=cost
+
+print(max_cost-min_cost)
+
+#해설; 상동
