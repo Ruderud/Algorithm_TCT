@@ -152,7 +152,7 @@ print(result)
 '''
 
 
-#Q43
+'''#Q43
 #0번 노드부터 순차적으로 노드와 노드를 연결해서 하나의 노드로 만든다.
 #이때 새로 편입할 노드가 그룹에 속하기 위해 사용되는 최소한의 값만 선택해서 추가하고, 이를 min_cost에 합산한다
 #모든 노드가 연결되었을때, 전체 max_cost - min_cost를 결과로 출력 
@@ -196,3 +196,62 @@ for road in roads:                         #낮은비용의 길부터 하나씩 
 print(max_cost-min_cost)
 
 #해설; 상동
+'''
+
+#Q44 행성 터널
+
+#해설
+#최소신장트리를 만드는 방법을 응용해야함 (크루스칼 알고리즘)
+#x,y,z 각각에 대한 축별 거리를 고려하고, 이를 정렬하여 3 * (n-1)개의 간선을 검사하게한다.
+
+def find_parent(parent,x):  #부모노드 찾기
+    if parent[x] != x:
+        parent[x] = find_parent(parent, parent[x])
+    return parent[x]
+
+def union_parent(parent,a,b):   #두 원소가 속한 집합 합치기
+    a = find_parent(parent,a)
+    b = find_parent(parent,b)
+    if a<b:
+        parent[b] = a
+    else:
+        parent[a] = b
+
+n = int(input())
+parent = [0] * (n+1)
+
+edges = []  #간선담을 리스트
+result = 0
+
+for i in range(1,n+1):  #부모노드 자기자신으로 초기화
+    parent[i] = i
+
+x,y,z = [], [], []
+
+for i in range(1,n+1):
+    data = list(map(int,input().split()))
+    x.append((data[0], i))
+    y.append((data[1], i))
+    z.append((data[2], i))
+
+x.sort()    #x,y,z축 각각에 대해 위치값을 오름차순으로 정리. (위치, index)로 값을 저장하여 값을 구분할 수 있게끔함
+y.sort()
+z.sort()
+
+for i in range(n-1):     #x,y,z축값 각각에 대해, 오름차순 정리한 노드간 거리를 계산해서 edges에 저장함. -> edges에서 이제 x,y,z축값 각각의 구분x
+    edges.append((x[i+1][0] - x[i][0], x[i][1], x[i+1][1]))
+    edges.append((y[i+1][0] - y[i][0], y[i][1], y[i+1][1]))
+    edges.append((z[i+1][0] - z[i][0], z[i][1], z[i+1][1]))
+
+print(x,'\n',y,'\n',z,'\n')
+print(edges)
+edges.sort()            #노드간 축거리 계산한결과를 다시 오름차순으로 정리 
+print(edges)
+
+for edge in edges:      #노드간 간선을 하나씩 가져와서 두 노드가 이미 이어져있는지 확인하고, 이어져있으면 패스, 이어져있지않으면 union으로 연결하고 cost를 더함
+    cost,a,b = edge
+    if find_parent(parent,a) != find_parent(parent,b):
+        union_parent(parent,a,b)
+        result+=cost
+
+print(result)
