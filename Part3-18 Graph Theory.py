@@ -198,7 +198,7 @@ print(max_cost-min_cost)
 #해설; 상동
 '''
 
-#Q44 행성 터널
+'''#Q44 행성 터널
 
 #해설
 #최소신장트리를 만드는 방법을 응용해야함 (크루스칼 알고리즘)
@@ -255,3 +255,75 @@ for edge in edges:      #노드간 간선을 하나씩 가져와서 두 노드�
         result+=cost
 
 print(result)
+'''
+
+#45 최종 순위
+#위상정렬 알고리즘 사용
+
+from collections import deque
+
+for tc in range(int(input())):
+    n = int(input())
+    indegree = [0] * (n+1)
+    graph = [[False] * (n+1) for i in range(n+1)]
+
+    data = list(map(int,input().split()))       #작년의 순위
+
+    for i in range(n):
+        for j in range(i+1,n):
+            graph[data[i]][data[i]] = True      #입력그래프 자기자신으로 가는것은 true화 초기화
+            indegree[data[j]] += 1              #진입차수를 1개씩 만들어줌(작년의 데이터는 유일한 데이터이기에)
+    
+    m = int(input())
+    for i in range(m):
+        a,b = map(int, input().split())
+
+        if graph[a][b]:                         #변경된 순위라면, 그래프에서 방향을 뒤집는다
+            graph[a][b] = False
+            graph[b][a] = True
+            indegree[a] += 1
+            indegree[b] -= 1
+        
+        else:                                   #변경되지 않는 대상이면 그대로 놔둔다
+            graph[a][b] = True
+            graph[b][a] = False
+            indegree[a] -= 1
+            indegree[b] += 1
+
+    result = []
+    q = deque()
+
+    for i in range(1, n+1):
+        if indegree[i] == 0:
+            q.append(i)
+
+    certain = True                              #변경후의 순위가 단 한가지일때
+    cycle = False                               #            여러가지일때 (사이클이 생길때)
+
+    for i in range(n):
+        if len(q) == 0:
+            cycle = True
+            break
+
+        if len(q) >= 2:                         #순위결정방법이 한가지가 아닐때 (즉, 진입차수가 1이상인것이 있어서 답이 여러개가 될때)
+            certain = False
+            break
+        
+        now = q.popleft()                       #deque에서 순차적으로 하나씩 진입가능한 노드조건을 가져온다
+        result.append(now)
+
+        for j in range(1, n+1):                 #만일 탐색중인 현재노드에서 조건 노드로 이동할 수 있다면, 해당 목표노드의 진입차수를 하나 뺀다.
+            if graph[now][j]:
+                indegree[j] -= 1
+
+                if indegree[j] == 0:            #또한, 이때 진입차수가 0이되면 해당 노드를 탐색 가능한 노드화 하기위해 deque에 추가한다.
+                    q.append(j)
+    
+    if cycle:
+        print('IMPOSSIBLE')
+    elif not certain:
+        print('?')
+    else:
+        for i in result:
+            print(i, end=' ')
+        print()
