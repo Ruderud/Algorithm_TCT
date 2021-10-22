@@ -1,6 +1,6 @@
 #대충 책앞부분 참조하라는내용
 
-
+https://www.google.com/
 
 #구동에 걸린시간 계산
 import time
